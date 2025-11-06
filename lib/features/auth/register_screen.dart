@@ -24,11 +24,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _register() {
     // Use the bool return value from the service
-    final didRegister = authService.register(
+    Object didRegister = authService.register(
       _usernameController.text,
       _emailController.text,
       _passwordController.text,
     );
+
+    print(didRegister);
+    // if (didRegister is bool) {
+    //   if (didRegister) {
+    //     context.pop(); // Navigate back to login
+    //   } else {
+    //     // Handle registration failure
+    //   }
+    // } else {
+    //   // Handle registration failure
+    // }
+
   }
 
   @override

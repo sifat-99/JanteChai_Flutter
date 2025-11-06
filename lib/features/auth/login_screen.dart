@@ -21,15 +21,31 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _login() {
-    // Use the bool return value from the service
-    final  didLogin = authService.login(
-      _usernameController.text,
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
+  void _login() async { // Mark as async
+    final bool didLogin = await authService.login(
+      _usernameController.text, // Assuming username is email for login
       _passwordController.text,
     );
 
-
+    if (didLogin) {
+      // Navigate to the home screen or profile screen on successful login
+      // Using `goRouter.go()` will replace the current route, preventing back navigation to login
+      if (mounted) {
+        context.go('/home'); // Or whatever your home route is
+      }
+    } else {
+      // Show an error message if login failed
+      if (mounted) {
+        _showErrorSnackBar('Login failed. Please check your credentials.');
+      }
     }
+  }
 
 
   @override
@@ -46,9 +62,10 @@ class _LoginScreenState extends State<LoginScreen> {
             TextField(
               controller: _usernameController,
               decoration: const InputDecoration(
-                labelText: 'Username',
+                labelText: 'Email',
                 border: OutlineInputBorder(),
               ),
+              keyboardType: TextInputType.emailAddress, // Suggest email keyboard
             ),
             const SizedBox(height: 16.0),
             TextField(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
-enum UserRole { user, reporter, admin }
+import 'package:jante_chai/services/auth_service.dart'; // Import AuthService
+import 'package:go_router/go_router.dart'; // Import go_router
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -10,11 +10,47 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // Placeholder for user role, this would typically come from an authentication service or similar.
-  UserRole _userRole = UserRole.admin; // Default role
+  User? _currentUser; // Holds the current user data
+  late UserRole _userRole; // User role for drawer items
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize current user and role from AuthService
+    _currentUser = authService.currentUser.value;
+    _userRole = _currentUser?.role ?? UserRole.unknown;
+
+    // Listen to changes in login status and current user
+    authService.isLoggedIn.addListener(_onAuthChanged);
+    authService.currentUser.addListener(_onUserChanged);
+  }
+
+  @override
+  void dispose() {
+    authService.isLoggedIn.removeListener(_onAuthChanged);
+    authService.currentUser.removeListener(_onUserChanged);
+    super.dispose();
+  }
+
+  void _onAuthChanged() {
+    setState(() {
+      // Re-fetch user details when login status changes
+      _currentUser = authService.currentUser.value;
+      _userRole = _currentUser?.role ?? UserRole.unknown;
+    });
+  }
+
+  void _onUserChanged() {
+    setState(() {
+      _currentUser = authService.currentUser.value;
+      _userRole = _currentUser?.role ?? UserRole.unknown;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final bool isLoggedIn = authService.isLoggedIn.value;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Profile'),
@@ -26,24 +62,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: <Widget>[
-          _buildProfileHeader(),
+          _buildProfileHeader(isLoggedIn),
           const SizedBox(height: 24),
-          _buildInfoSection(),
+          _buildInfoSection(isLoggedIn),
           const SizedBox(height: 24),
-          _buildBioSection(),
+          _buildBioSection(isLoggedIn),
           const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () {
-              // Navigate to edit profile screen
-            },
-            child: const Text('Edit Profile'),
-          ),
+          if (isLoggedIn) // Show Edit Profile button only if logged in
+            ElevatedButton(
+              onPressed: () {
+                // TODO: Navigate to edit profile screen
+              },
+              child: const Text('Edit Profile'),
+            ) 
+          else // Show Login button if not logged in
+            ElevatedButton(
+              onPressed: () {
+                context.push('/login'); // Navigate to Login screen
+              },
+              child: const Text('Login'),
+            ),
         ],
       ),
     );
   }
 
   Widget _buildDrawer(BuildContext context) {
+    final bool isLoggedIn = authService.isLoggedIn.value;
+
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -52,30 +98,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
             decoration: BoxDecoration(
               color: Theme.of(context).primaryColor,
             ),
-            child: const Text(
-              'User Routes',
-              style: TextStyle(
+            child: Text(
+              isLoggedIn ? 'Welcome, ${_currentUser?.name ?? 'User'}' : 'Guest User',
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 24,
               ),
             ),
           ),
-          ..._buildDrawerItems(context),
+          ..._buildDrawerItems(context, isLoggedIn),
         ],
       ),
     );
   }
 
-  List<Widget> _buildDrawerItems(BuildContext context) {
+  List<Widget> _buildDrawerItems(BuildContext context, bool isLoggedIn) {
     List<Widget> items = [];
 
-    // Common routes for all roles
+    // Common routes for all (logged in or not)
     items.add(ListTile(
       leading: const Icon(Icons.home),
       title: const Text('Home'),
       onTap: () {
         Navigator.pop(context); // Close the drawer
-        // Navigate to Home
+        // TODO: Navigate to Home
       },
     ));
     items.add(ListTile(
@@ -83,123 +129,156 @@ class _ProfileScreenState extends State<ProfileScreen> {
       title: const Text('Settings'),
       onTap: () {
         Navigator.pop(context);
-        // Navigate to Settings
+        // TODO: Navigate to Settings
       },
     ));
 
-    // Role-specific routes
-    if (_userRole == UserRole.user) {
+    if (isLoggedIn && _currentUser != null) {
+      // Role-specific routes for logged-in users
+      if (_userRole == UserRole.user) {
+        items.add(ListTile(
+          leading: const Icon(Icons.bookmark),
+          title: const Text('Saved Posts'),
+          onTap: () {
+            Navigator.pop(context);
+            // TODO: Navigate to Saved Posts
+          },
+        ));
+      } else if (_userRole == UserRole.reporter) {
+        items.add(ListTile(
+          leading: const Icon(Icons.article),
+          title: const Text('Manage Articles'),
+          onTap: () {
+            Navigator.pop(context);
+            // TODO: Navigate to Manage Articles
+          },
+        ));
+        items.add(ListTile(
+          leading: const Icon(Icons.analytics),
+          title: const Text('View Reports'),
+          onTap: () {
+            Navigator.pop(context);
+            // TODO: Navigate to View Reports
+          },
+        ));
+      } else if (_userRole == UserRole.admin) {
+        items.add(ListTile(
+          leading: const Icon(Icons.people),
+          title: const Text('Manage Users'),
+          onTap: () {
+            Navigator.pop(context);
+            // TODO: Navigate to Manage Users
+          },
+        ));
+        items.add(ListTile(
+          leading: const Icon(Icons.dashboard),
+          title: const Text('Admin Dashboard'),
+          onTap: () {
+            Navigator.pop(context);
+            // TODO: Navigate to Admin Dashboard
+          },
+        ));
+        items.add(ListTile(
+          leading: const Icon(Icons.analytics_outlined),
+          title: const Text('System Logs'),
+          onTap: () {
+            Navigator.pop(context);
+            // TODO: Navigate to System Logs
+          },
+        ));
+      }
+
+      items.add(const Divider()); // A separator
       items.add(ListTile(
-        leading: const Icon(Icons.bookmark),
-        title: const Text('Saved Posts'),
-        onTap: () {
-          Navigator.pop(context);
-          // Navigate to Saved Posts
+        leading: const Icon(Icons.logout),
+        title: const Text('Logout'),
+        onTap: () async {
+          Navigator.pop(context); // Close the drawer
+          await authService.logout(); // Perform Logout
         },
       ));
-    } else if (_userRole == UserRole.reporter) {
+    } else {
+      // Add login/registration options for logged-out users in drawer if desired
+      items.add(const Divider());
       items.add(ListTile(
-        leading: const Icon(Icons.article),
-        title: const Text('Manage Articles'),
+        leading: const Icon(Icons.login),
+        title: const Text('Login'),
         onTap: () {
           Navigator.pop(context);
-          // Navigate to Manage Articles
+          context.push('/login'); // Navigate to Login screen
         },
       ));
       items.add(ListTile(
-        leading: const Icon(Icons.analytics),
-        title: const Text('View Reports'),
+        leading: const Icon(Icons.person_add),
+        title: const Text('Register'),
         onTap: () {
           Navigator.pop(context);
-          // Navigate to View Reports
-        },
-      ));
-    } else if (_userRole == UserRole.admin) {
-      items.add(ListTile(
-        leading: const Icon(Icons.people),
-        title: const Text('Manage Users'),
-        onTap: () {
-          Navigator.pop(context);
-          // Navigate to Manage Users
-        },
-      ));
-      items.add(ListTile(
-        leading: const Icon(Icons.dashboard),
-        title: const Text('Admin Dashboard'),
-        onTap: () {
-          Navigator.pop(context);
-          // Navigate to Admin Dashboard
-        },
-      ));
-      items.add(ListTile(
-        leading: const Icon(Icons.analytics_outlined),
-        title: const Text('System Logs'),
-        onTap: () {
-          Navigator.pop(context);
-          // Navigate to System Logs
+          // TODO: Navigate to Register screen
+          print('Navigate to Register from Drawer');
         },
       ));
     }
 
-    items.add(const Divider()); // A separator
-    items.add(ListTile(
-      leading: const Icon(Icons.logout),
-      title: const Text('Logout'),
-      onTap: () {
-        Navigator.pop(context);
-        // Perform Logout
-      },
-    ));
-
     return items;
   }
 
-  Widget _buildProfileHeader() {
-    return const Column(
+  Widget _buildProfileHeader(bool isLoggedIn) {
+    final String displayName = _currentUser?.name ?? 'Guest User';
+    final String displayHandle = _currentUser?.github != null
+        ? '@${_currentUser!.github}'
+        : (_currentUser?.email != null ? _currentUser!.email : 'Not logged in');
+    final String avatarUrl = _currentUser?.avatarUrl ?? 'https://i.pravatar.cc/150?img=12'; // Default avatar
+
+    return Column(
       children: <Widget>[
         CircleAvatar(
           radius: 60,
-          backgroundImage: NetworkImage('https://avatars.githubusercontent.com/u/125875734?s=400&u=97d6e212b84dae4c960dbbcdf48c9e9f5f069dc4&v=4'), // Fake avatar
+          backgroundImage: NetworkImage(avatarUrl),
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         Text(
-          'Md Abdur Rahman Sifat',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          displayName,
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Text(
-          '@sifat-99',
-          style: TextStyle(fontSize: 16, color: Colors.grey),
+          displayHandle,
+          style: const TextStyle(fontSize: 16, color: Colors.grey),
         ),
       ],
     );
   }
 
-  Widget _buildInfoSection() {
+  Widget _buildInfoSection(bool isLoggedIn) {
+    // Placeholder data for now, as backend doesn't provide posts/followers/following directly
     return const Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: <Widget>[
-        _InfoTile(label: 'Posts', value: '142'),
-        _InfoTile(label: 'Followers', value: '1.2k'),
-        _InfoTile(label: 'Following', value: '350'),
+        _InfoTile(label: 'Posts', value: '0'),
+        _InfoTile(label: 'Followers', value: '0'),
+        _InfoTile(label: 'Following', value: '0'),
       ],
     );
   }
 
-  Widget _buildBioSection() {
-    return const Column(
+  Widget _buildBioSection(bool isLoggedIn) {
+    final String displayBio = _currentUser?.bio ?? 'Please log in to see your profile details.';
+    final String displayEmail = _currentUser?.email ?? 'N/A';
+    final String displayGithub = _currentUser?.github != null ? 'github.com/${_currentUser!.github}' : 'N/A';
+
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Text('About Me', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        SizedBox(height: 8),
+        const Text('About Me', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
         Text(
-          'Flutter Developer| NextJs Developer | Coffee Enthusiast ☕ | Lifelong Learner 📚\nBuilding beautiful and performant apps.\n📍 Dhaka, Bangladesh',
-          style: TextStyle(fontSize: 16, height: 1.4),
+          displayBio,
+          style: const TextStyle(fontSize: 16, height: 1.4),
         ),
-        SizedBox(height: 16),
-        Row(children: [Icon(Icons.email_outlined, size: 20), SizedBox(width: 8), Text('mdabdurrahmansifat@gmail.com', style: TextStyle(fontSize: 16))]),
-        SizedBox(height: 8),
-        Row(children: [Icon(Icons.link_outlined, size: 20), SizedBox(width: 8), Text('mdabdurrahmansifat.vercel.app', style: TextStyle(fontSize: 16, color: Colors.blue))]),
+        const SizedBox(height: 16),
+        Row(children: [const Icon(Icons.email_outlined, size: 20), const SizedBox(width: 8), Text(displayEmail, style: const TextStyle(fontSize: 16))]),
+        const SizedBox(height: 8),
+        Row(children: [const Icon(Icons.link_outlined, size: 20), const SizedBox(width: 8), Text(displayGithub, style: const TextStyle(fontSize: 16, color: Colors.blue))]),
       ],
     );
   }

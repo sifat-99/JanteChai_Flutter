@@ -46,6 +46,12 @@ final goRouter = GoRouter(
         GoRoute(path: '/register'
             ,builder: (context, state) => const RegisterScreen()
         ),
+        GoRoute(path: '/login'
+            ,builder: (context, state) => const LoginScreen()
+        ),
+        GoRoute(path: '/home',
+            builder: (context, state) => const HomeScreen()
+        ),
 
         // New route for news details
         GoRoute(
