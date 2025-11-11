@@ -40,16 +40,16 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.article.title),
+        title: Text(widget.article.sourceName),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (widget.article.urlToImage != null)
+            if (widget.article.imageUrl != null)
               Image.network(
-                widget.article.urlToImage!,
+                widget.article.imageUrl!,
                 height: 250,
                 width: double.infinity,
                 fit: BoxFit.cover,
@@ -62,17 +62,18 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
             ),
             const SizedBox(height: 8.0),
             Text(
-              'By ${widget.article.author ?? 'Unknown'} - ${widget.article.publishedAt.substring(0, 10)}',
+              'By ${widget.article.creator?.join(', ') ?? 'Unknown'} - ${widget.article.pubDate.substring(0, 10)}',
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 16.0),
+            if(widget.article.description != null)
             Text(
-              widget.article.description,
+              widget.article.description!,
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             const SizedBox(height: 16.0),
             ElevatedButton(
-              onPressed: () => _launchUrl(widget.article.url),
+              onPressed: () => _launchUrl(widget.article.link),
               child: const Text('Read Full Article'),
             ),
             const SizedBox(height: 24.0),
