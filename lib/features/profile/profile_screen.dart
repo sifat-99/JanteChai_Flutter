@@ -121,7 +121,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       title: const Text('Home'),
       onTap: () {
         Navigator.pop(context); // Close the drawer
-        // TODO: Navigate to Home
+        context.go('/'); // Navigate to Home
       },
     ));
     items.add(ListTile(
@@ -129,7 +129,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       title: const Text('Settings'),
       onTap: () {
         Navigator.pop(context);
-        // TODO: Navigate to Settings
       },
     ));
 

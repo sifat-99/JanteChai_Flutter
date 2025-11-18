@@ -28,6 +28,7 @@ class Comment {
   final String content;
   final DateTime createdAt;
   final List<Reply> replies;
+  final String? articleTitle;
 
   Comment({
     required this.id,
@@ -36,6 +37,7 @@ class Comment {
     required this.content,
     required this.createdAt,
     required this.replies,
+    this.articleTitle,
   });
 
   factory Comment.fromJson(Map<String, dynamic> json) {
@@ -49,6 +51,7 @@ class Comment {
       content: json['content'],
       createdAt: DateTime.parse(json['createdAt']),
       replies: replies,
+      articleTitle: json['articleTitle'],
     );
   }
 }

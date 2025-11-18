@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:jante_chai/models/article_model.dart';
+import 'package:jante_chai/models/comment_model.dart';
 import 'package:jante_chai/services/api_service.dart';
 
 class NewsApiService {
@@ -18,6 +19,16 @@ class NewsApiService {
     try {
       final response = await ApiService.get('news/$newsId');
       return Article.fromJson(response);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  static Future<List<Comment>> getCommentsByUser(String userEmail) async {
+    try {
+      final response = await ApiService.get('comments/user/$userEmail');
+      final List<dynamic> commentsList = response['comments'];
+      return commentsList.map((json) => Comment.fromJson(json)).toList();
     } catch (e) {
       rethrow;
     }

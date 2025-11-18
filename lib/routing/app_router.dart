@@ -10,8 +10,11 @@ import 'package:jante_chai/features/dashboard/reporter_dashboard.dart';
 import 'package:jante_chai/features/dashboard/user_dashboard.dart';
 import 'package:jante_chai/features/home/home_screen.dart';
 import 'package:jante_chai/features/main_shell.dart';
+import 'package:jante_chai/features/my_comments/my_comments_screen.dart';
 import 'package:jante_chai/features/profile/profile_screen.dart';
 import 'package:jante_chai/features/saved/saved_screen.dart';
+import 'package:jante_chai/features/saved_news/saved_news_screen.dart';
+import 'package:jante_chai/features/settings/settings_screen.dart';
 import 'package:jante_chai/features/welcome/welcome_screen.dart';
 import 'package:jante_chai/features/news_details/news_details_screen.dart';
 import 'package:jante_chai/models/article_model.dart';
@@ -76,6 +79,18 @@ final goRouter = GoRouter(
         GoRoute(
           path: '/published_news',
           builder: (context, state) => const PublishedNewsScreen(),
+        ),
+        GoRoute(
+          path: '/saved-news',
+          builder: (context, state) => const SavedNewsScreen(),
+        ),
+        GoRoute(
+          path: '/my-comments',
+          builder: (context, state) => const MyCommentsScreen(),
+        ),
+        GoRoute(
+          path: '/settings',
+          builder: (context, state) => const SettingsScreen(),
         ),
       ],
     ),
