@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "272134549054",
+    "project_id": "jantechaii",
+    "storage_bucket": "jantechaii.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:272134549054:android:bc14cedd8b96c197a12b6f",
+        "android_client_info": {
+          "package_name": "com.example.jante_chai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBbDO6zSJDcWAoDeBm7ZrA7vmXMOuuNtbY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

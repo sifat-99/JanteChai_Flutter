@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jante_chai/services/auth_service.dart';
-// Corrected import path
+
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -13,34 +13,48 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _profilePicController = TextEditingController();
 
   @override
   void dispose() {
     _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _profilePicController.dispose();
     super.dispose();
   }
 
-  void _register() {
-    // Use the bool return value from the service
-    Object didRegister = authService.register(
-      _usernameController.text,
-      _emailController.text,
-      _passwordController.text,
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
+  void _register(UserRole role) async {
+    final username = _usernameController.text;
+    final email = _emailController.text;
+    final password = _passwordController.text;
+    final profilePic = _profilePicController.text;
+
+    if (username.isEmpty || email.isEmpty || password.isEmpty) {
+      _showErrorSnackBar('Please fill in all fields.');
+      return;
+    }
+
+    final dynamic didRegister = await authService.register(
+      username,
+      email,
+      password,
+      profilePic,
+      role,
     );
 
-    print(didRegister);
-    // if (didRegister is bool) {
-    //   if (didRegister) {
-    //     context.pop(); // Navigate back to login
-    //   } else {
-    //     // Handle registration failure
-    //   }
-    // } else {
-    //   // Handle registration failure
-    // }
-
+    if (didRegister != null && mounted) {
+      // Assuming a successful registration will return a non-null object
+      context.pop(); // Navigate back to login
+    } else if (mounted) {
+      _showErrorSnackBar('Registration failed. Please try again.');
+    }
   }
 
   @override
@@ -79,10 +93,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 border: OutlineInputBorder(),
               ),
             ),
+            const SizedBox(height: 16.0),
+            TextField(
+              controller: _profilePicController,
+              decoration: const InputDecoration(
+                labelText: 'Profile Picture URL',
+                border: OutlineInputBorder(),
+              ),
+            ),
             const SizedBox(height: 24.0),
-            ElevatedButton(
-              onPressed: _register,
-              child: const Text('Register'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () => _register(UserRole.user),
+                  child: const Text('Register as User'),
+                ),
+                ElevatedButton(
+                  onPressed: () => _register(UserRole.reporter),
+                  child: const Text('Register as Reporter'),
+                ),
+              ],
             ),
             const SizedBox(height: 16.0),
             TextButton(

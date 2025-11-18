@@ -224,16 +224,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildProfileHeader(bool isLoggedIn) {
     final String displayName = _currentUser?.name ?? 'Guest User';
-    final String displayHandle = _currentUser?.github != null
-        ? '@${_currentUser!.github}'
-        : (_currentUser?.email != null ? _currentUser!.email : 'Not logged in');
-    final String avatarUrl = _currentUser?.avatarUrl ?? 'https://i.pravatar.cc/150?img=12'; // Default avatar
+    final String displayHandle = _currentUser?.reporterId ?? (_currentUser?.email ?? 'Not logged in');
+    final String? avatarUrl = _currentUser?.avatarUrl;
 
     return Column(
       children: <Widget>[
         CircleAvatar(
           radius: 60,
-          backgroundImage: NetworkImage(avatarUrl),
+          child: avatarUrl != null && avatarUrl.isNotEmpty
+              ? ClipOval(
+                  child: Image.network(
+                    avatarUrl,
+                    fit: BoxFit.cover,
+                    width: 120.0,
+                    height: 120.0,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Icon(Icons.person, size: 60);
+                    },
+                  ),
+                )
+              : const Icon(Icons.person, size: 60),
         ),
         const SizedBox(height: 16),
         Text(
@@ -265,6 +275,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final String displayBio = _currentUser?.bio ?? 'Please log in to see your profile details.';
     final String displayEmail = _currentUser?.email ?? 'N/A';
     final String displayGithub = _currentUser?.github != null ? 'github.com/${_currentUser!.github}' : 'N/A';
+    final String? createdAt = _currentUser?.createdAt;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -279,6 +290,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Row(children: [const Icon(Icons.email_outlined, size: 20), const SizedBox(width: 8), Text(displayEmail, style: const TextStyle(fontSize: 16))]),
         const SizedBox(height: 8),
         Row(children: [const Icon(Icons.link_outlined, size: 20), const SizedBox(width: 8), Text(displayGithub, style: const TextStyle(fontSize: 16, color: Colors.blue))]),
+        if (createdAt != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: Row(children: [const Icon(Icons.calendar_today_outlined, size: 20), const SizedBox(width: 8), Text('Member since: $createdAt', style: const TextStyle(fontSize: 16))]),
+          ),
       ],
     );
   }

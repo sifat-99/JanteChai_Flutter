@@ -3,13 +3,18 @@ import 'package:go_router/go_router.dart';
 import 'package:jante_chai/features/auth/login_screen.dart';
 import 'package:jante_chai/features/auth/register_screen.dart';
 import 'package:jante_chai/features/categories/categories_screen.dart';
+import 'package:jante_chai/features/dashboard/admin_dashboard.dart';
+import 'package:jante_chai/features/dashboard/publish_news_screen.dart';
+import 'package:jante_chai/features/dashboard/published_news_screen.dart';
+import 'package:jante_chai/features/dashboard/reporter_dashboard.dart';
+import 'package:jante_chai/features/dashboard/user_dashboard.dart';
 import 'package:jante_chai/features/home/home_screen.dart';
 import 'package:jante_chai/features/main_shell.dart';
 import 'package:jante_chai/features/profile/profile_screen.dart';
 import 'package:jante_chai/features/saved/saved_screen.dart';
 import 'package:jante_chai/features/welcome/welcome_screen.dart';
-import 'package:jante_chai/features/news_details/news_details_screen.dart'; // New import
-import 'package:jante_chai/models/article_model.dart'; // New import
+import 'package:jante_chai/features/news_details/news_details_screen.dart';
+import 'package:jante_chai/models/article_model.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -29,9 +34,17 @@ final goRouter = GoRouter(
       },
       routes: [
         GoRoute(
-          path: '/',
-          builder: (context, state) => const HomeScreen(),
-        ),
+            path: '/',
+            builder: (context, state) => const HomeScreen(),
+            routes: [
+              GoRoute(
+                path: 'details',
+                builder: (context, state) {
+                  final article = state.extra as Article;
+                  return NewsDetailsScreen(article: article);
+                },
+              ),
+            ]),
         GoRoute(
           path: '/categories',
           builder: (context, state) => const CategoriesScreen(),
@@ -40,28 +53,30 @@ final goRouter = GoRouter(
           path: '/saved',
           builder: (context, state) => const SavedScreen(),
         ),
-        GoRoute(path: '/profile',
-            builder: (context, state) => const ProfileScreen()
-        ),
-        GoRoute(path: '/register'
-            ,builder: (context, state) => const RegisterScreen()
-        ),
-        GoRoute(path: '/login'
-            ,builder: (context, state) => const LoginScreen()
-        ),
-        GoRoute(path: '/home',
-            builder: (context, state) => const HomeScreen()
-        ),
-
-        // New route for news details
+        GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen()),
         GoRoute(
-          path: '/details',
-          builder: (context, state) {
-            final article = state.extra as Article; // Cast the extra to Article
-            return NewsDetailsScreen(article: article);
-          },
+            path: '/register', builder: (context, state) => const RegisterScreen()),
+        GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+        GoRoute(
+          path: '/admin_dashboard',
+          builder: (context, state) => const AdminDashboard(),
         ),
-        // Add more routes as needed
+        GoRoute(
+          path: '/user_dashboard',
+          builder: (context, state) => const UserDashboard(),
+        ),
+        GoRoute(
+          path: '/reporter_dashboard',
+          builder: (context, state) => const ReporterDashboard(),
+        ),
+        GoRoute(
+          path: '/publish_news',
+          builder: (context, state) => const PublishNewsScreen(),
+        ),
+        GoRoute(
+          path: '/published_news',
+          builder: (context, state) => const PublishedNewsScreen(),
+        ),
       ],
     ),
   ],

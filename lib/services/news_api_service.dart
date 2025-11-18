@@ -1,31 +1,106 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:jante_chai/models/article_model.dart';
+import 'package:jante_chai/services/api_service.dart';
 
 class NewsApiService {
-  static const String _apiKey = 'pub_16cafba88be643f5a9f1bba8d5ffb0ae'; // Updated API Key for newsdata.io
-  static const String _baseUrl = 'https://newsdata.io/api/1'; // Base URL for newsdata.io
-
-  Future<List<Article>> fetchTopHeadlines() async {
-    final url = Uri.parse('$_baseUrl/latest?apikey=$_apiKey&country=bd');
+  static Future<List<Article>> getNews() async {
     try {
-      final response = await http.get(url);
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        final List<dynamic> articlesJson = data['results']; // Changed from 'articles' to 'results'
-        for(var article in articlesJson) {
-          if (kDebugMode) {
-            print(article); // For debugging purposes
-          }
-        }
-        return articlesJson.map((json) => Article.fromJson(json)).toList();
-      } else {
-        throw Exception('Failed to load articles: ${response.statusCode}');
-      }
+      final response = await ApiService.get('news');
+      debugPrint('Loaded news data: $response');
+      final List<dynamic> newsList = response['news'];
+      return newsList.map((json) => Article.fromJson(json)).toList();
     } catch (e) {
-      throw Exception('Error fetching articles: $e');
+      rethrow;
+    }
+  }
+
+  static Future<Article> getArticleById(String newsId) async {
+    try {
+      final response = await ApiService.get('news/$newsId');
+      return Article.fromJson(response);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  static Future<void> publishNews({
+    required String title,
+    required String description,
+    String? pictureUrl,
+    String? category,
+    required String reporterEmail,
+  }) async {
+    final Map<String, dynamic> data = {
+      'title': title,
+      'description': description,
+      'reporterEmail': reporterEmail,
+    };
+    if (pictureUrl != null && pictureUrl.isNotEmpty) {
+      data['pictureUrl'] = pictureUrl;
+    }
+    if (category != null && category.isNotEmpty) {
+      data['category'] = category;
+    }
+
+    try {
+      await ApiService.post('news/publish', data);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  static Future<void> updateNews(String newsId, Map<String, dynamic> data) async {
+    try {
+      await ApiService.put('news/$newsId', data);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  static Future<void> deleteNews(String newsId) async {
+    try {
+      await ApiService.delete('news/$newsId');
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  static Future<void> addComment({
+    required String newsId,
+    required String commenterName,
+    required String commenterEmail,
+    required String content,
+  }) async {
+    final Map<String, dynamic> data = {
+      'commenterName': commenterName,
+      'commenterEmail': commenterEmail,
+      'content': content,
+    };
+
+    try {
+      await ApiService.post('news/$newsId/comments', data);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  static Future<void> addReply({
+    required String newsId,
+    required String commentId,
+    required String replierName,
+    required String replierEmail,
+    required String content,
+  }) async {
+    final Map<String, dynamic> data = {
+      'replierName': replierName,
+      'replierEmail': replierEmail,
+      'content': content,
+    };
+
+    try {
+      await ApiService.post('news/$newsId/comments/$commentId/replies', data);
+    } catch (e) {
+      rethrow;
     }
   }
 }

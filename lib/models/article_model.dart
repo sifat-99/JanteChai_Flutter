@@ -1,61 +1,69 @@
+import 'package:jante_chai/models/comment_model.dart';
+
 class Article {
-  final String articleId;
-  final String link;
+  final String id;
+  final String? link;
   final String title;
   final String? description;
   final String? content;
   final List<String>? keywords;
-  final List<String>? creator;
-  final String language;
-  final List<String> country;
-  final List<String> category;
-  final String pubDate;
+  final String? reporterEmail;
+  final String? language;
+  final List<String>? country;
+  final String? category;
+  final String? pubDate;
   final String? imageUrl;
   final String? videoUrl;
-  final String sourceId;
-  final String sourceName;
-  final String sourceUrl;
+  final String? sourceId;
+  final String? sourceName;
+  final String? sourceUrl;
   final String? sourceIcon;
+  final List<Comment>? comments;
 
   Article({
-    required this.articleId,
-    required this.link,
+    required this.id,
+    this.link,
     required this.title,
     this.description,
     this.content,
     this.keywords,
-    this.creator,
-    required this.language,
-    required this.country,
-    required this.category,
-    required this.pubDate,
+    this.reporterEmail,
+    this.language,
+    this.country,
+    this.category,
+    this.pubDate,
     this.imageUrl,
     this.videoUrl,
-    required this.sourceId,
-    required this.sourceName,
-    required this.sourceUrl,
+    this.sourceId,
+    this.sourceName,
+    this.sourceUrl,
     this.sourceIcon,
+    this.comments,
   });
 
   factory Article.fromJson(Map<String, dynamic> json) {
+    var commentsList = json['comments'] as List? ?? [];
+    List<Comment> comments = commentsList.map((i) => Comment.fromJson(i)).toList();
+
     return Article(
-      articleId: json['article_id'] as String? ?? '',
-      link: json['link'] as String? ?? '',
-      title: json['title'] as String? ?? 'No Title',
-      description: json['description'] as String?,
-      content: json['content'] as String?,
-      keywords: (json['keywords'] as List<dynamic>?)?.map((e) => e as String).toList(),
-      creator: (json['creator'] as List<dynamic>?)?.map((e) => e as String).toList(),
-      language: json['language'] as String? ?? '',
-      country: (json['country'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
-      category: (json['category'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
-      pubDate: json['pubDate'] as String? ?? '',
-      imageUrl: json['image_url'] as String?,
-      videoUrl: json['video_url'] as String?,
-      sourceId: json['source_id'] as String? ?? '',
-      sourceName: json['source_name'] as String? ?? 'Unknown Source',
-      sourceUrl: json['source_url'] as String? ?? '',
-      sourceIcon: json['source_icon'] as String?,
+      id: json['_id'] ?? '',
+      link: json['link'],
+      title: json['title'] ?? 'No Title',
+      description: json['description'],
+      content: json['content'],
+      keywords: json['keywords'] != null ? List<String>.from(json['keywords']) : null,
+      reporterEmail: json['reporterEmail'],
+      language: json['language'],
+      country: json['country'] != null ? List<String>.from(json['country']) : [],
+      category: json['category'],
+      pubDate: json['publishedAt'] ?? json['pubDate'],
+      imageUrl: json['pictureUrl'] ?? json['image_url'],
+      videoUrl: json['video_url'],
+      sourceId: json['source_id'],
+      sourceName: json['source_name'],
+      sourceUrl: json['source_url'],
+      sourceIcon: json['source_icon'],
+      comments: comments,
     );
   }
 }

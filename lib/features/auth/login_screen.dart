@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jante_chai/services/auth_service.dart';
 
-
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -27,26 +26,30 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _login() async { // Mark as async
-    final bool didLogin = await authService.login(
-      _usernameController.text, // Assuming username is email for login
+  void _login(UserRole role) async {
+    final String? userRole = await authService.login(
+      _usernameController.text,
       _passwordController.text,
+      role,
     );
 
-    if (didLogin) {
-      // Navigate to the home screen or profile screen on successful login
-      // Using `goRouter.go()` will replace the current route, preventing back navigation to login
-      if (mounted) {
-        context.go('/home'); // Or whatever your home route is
+    if (userRole != null && mounted) {
+      switch (userRole) {
+        case 'admin':
+          context.go('/admin_dashboard');
+          break;
+        case 'reporter':
+          context.go('/reporter_dashboard');
+          break;
+        case 'user':
+        default:
+          context.go('/user_dashboard');
+          break;
       }
-    } else {
-      // Show an error message if login failed
-      if (mounted) {
-        _showErrorSnackBar('Login failed. Please check your credentials.');
-      }
+    } else if (mounted) {
+      _showErrorSnackBar('Login failed. Please check your credentials.');
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 labelText: 'Email',
                 border: OutlineInputBorder(),
               ),
-              keyboardType: TextInputType.emailAddress, // Suggest email keyboard
+              keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 16.0),
             TextField(
@@ -77,14 +80,23 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
             const SizedBox(height: 24.0),
-            ElevatedButton(
-              onPressed: _login,
-              child: const Text('Login'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () => _login(UserRole.user),
+                  child: const Text('Login as User'),
+                ),
+                ElevatedButton(
+                  onPressed: () => _login(UserRole.reporter),
+                  child: const Text('Login as Reporter'),
+                ),
+              ],
             ),
             const SizedBox(height: 16.0),
             TextButton(
               onPressed: () {
-                context.push('/register'); // Navigate to register page
+                context.push('/register');
               },
               child: const Text('Don\'t have an account? Register'),
             ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:jante_chai/services/auth_service.dart';
 
 class MainShell extends StatelessWidget {
   final Widget child;
@@ -22,8 +23,8 @@ class MainShell extends StatelessWidget {
             label: 'Categories',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.bookmark),
-            label: 'Saved',
+            icon: Icon(Icons.dashboard),
+            label: 'Dashboard',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
@@ -43,7 +44,8 @@ class MainShell extends StatelessWidget {
     if (location.startsWith('/categories')) {
       return 1;
     }
-    if (location.startsWith('/saved')) {
+    if (location.startsWith('/user_dashboard') ||
+        location.startsWith('/reporter_dashboard')) {
       return 2;
     }
     if (location.startsWith('/profile')) {
@@ -61,7 +63,20 @@ class MainShell extends StatelessWidget {
         GoRouter.of(context).go('/categories');
         break;
       case 2:
-        GoRouter.of(context).go('/saved');
+        final user = authService.currentUser.value;
+        if (user != null) {
+          switch (user.role) {
+            case UserRole.reporter:
+              GoRouter.of(context).go('/reporter_dashboard');
+              break;
+            case UserRole.user:
+            default:
+              GoRouter.of(context).go('/user_dashboard');
+              break;
+          }
+        } else {
+          GoRouter.of(context).go('/login');
+        }
         break;
       case 3:
         GoRouter.of(context).go('/profile');

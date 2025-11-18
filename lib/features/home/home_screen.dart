@@ -17,12 +17,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _articlesFuture = NewsApiService().fetchTopHeadlines();
+    _articlesFuture = NewsApiService.getNews();
   }
 
   Future<void> _fetchArticles() async {
     setState(() {
-      _articlesFuture = NewsApiService().fetchTopHeadlines();
+      _articlesFuture = NewsApiService.getNews();
     });
   }
 
@@ -53,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   final article = articles[index];
                   return InkWell( // Wrap with InkWell for tap detection
                     onTap: () {
-                      context.go('/details', extra: article); // Navigate to details page
+                      context.go('/details', extra: article);
                     },
                     child: ArticleCard(article: article),
                   );
