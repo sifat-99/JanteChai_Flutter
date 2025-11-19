@@ -143,7 +143,17 @@ class AuthService {
   }
 
   Future<String?> login(String email, String password, UserRole role) async {
-    String endpoint = role == UserRole.reporter ? 'reporters/login' : 'users/login';
+    String endpoint = "";
+    if (role == UserRole.reporter) {
+      endpoint = 'reporters/login';
+    } else if (role == UserRole.user) {
+      endpoint = 'users/login';
+    } else if (role == UserRole.admin) {
+      endpoint = 'admins/login';
+    } else {
+      debugPrint('Invalid role provided for login: $role');
+      return null;
+    }
     try {
       final responseData = await ApiService.post(endpoint, {
         'email': email,

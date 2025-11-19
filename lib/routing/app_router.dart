@@ -4,6 +4,10 @@ import 'package:jante_chai/features/auth/login_screen.dart';
 import 'package:jante_chai/features/auth/register_screen.dart';
 import 'package:jante_chai/features/categories/categories_screen.dart';
 import 'package:jante_chai/features/dashboard/admin_dashboard.dart';
+import 'package:jante_chai/features/dashboard/manage_news/edit_news_screen.dart';
+import 'package:jante_chai/features/dashboard/manage_news/manage_news_screen.dart';
+import 'package:jante_chai/features/dashboard/manage_reporters/manage_reporters_screen.dart';
+import 'package:jante_chai/features/dashboard/manage_users/manage_users_screen.dart';
 import 'package:jante_chai/features/dashboard/publish_news_screen.dart';
 import 'package:jante_chai/features/dashboard/published_news_screen.dart';
 import 'package:jante_chai/features/dashboard/reporter_dashboard.dart';
@@ -58,7 +62,8 @@ final goRouter = GoRouter(
         ),
         GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen()),
         GoRoute(
-            path: '/register', builder: (context, state) => const RegisterScreen()),
+            path: '/register',
+            builder: (context, state) => const RegisterScreen()),
         GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
         GoRoute(
           path: '/admin_dashboard',
@@ -91,6 +96,25 @@ final goRouter = GoRouter(
         GoRoute(
           path: '/settings',
           builder: (context, state) => const SettingsScreen(),
+        ),
+        GoRoute(
+          path: '/manage-news',
+          builder: (context, state) => const ManageNewsScreen(),
+        ),
+        GoRoute(
+          path: '/manage-users',
+          builder: (context, state) => const ManageUsersScreen(),
+        ),
+        GoRoute(
+          path: '/manage-reporters',
+          builder: (context, state) => const ManageReportersScreen(),
+        ),
+        GoRoute(
+          path: '/edit-news',
+          builder: (context, state) {
+            final article = state.extra as Article;
+            return EditNewsScreen(article: article);
+          },
         ),
       ],
     ),

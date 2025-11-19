@@ -90,6 +90,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 ElevatedButton(
                   onPressed: () => _login(UserRole.reporter),
                   child: const Text('Login as Reporter'),
+                ),ElevatedButton(
+                  onPressed: () => _login(UserRole.admin),
+                  child: const Text('Login as Admin'),
                 ),
               ],
             ),
