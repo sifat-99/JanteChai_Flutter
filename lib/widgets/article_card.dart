@@ -1,8 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:jante_chai/models/article_model.dart';
+import 'package:intl/intl.dart';
 
 class ArticleCard extends StatelessWidget {
   final Article article;
+
+
+  String formatDate(String? dateString) {
+    if (dateString == null || dateString.isEmpty) return '';
+
+    final dateTime = DateTime.parse(dateString);
+    return DateFormat('dd MMM yyyy').format(dateTime);
+  }
+
 
   const ArticleCard({Key? key, required this.article}) : super(key: key);
 
@@ -67,10 +77,10 @@ class ArticleCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      article.pubDate ?? '',
+                      formatDate(article.pubDate),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            fontStyle: FontStyle.italic,
-                          ),
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
                   ],
                 ),

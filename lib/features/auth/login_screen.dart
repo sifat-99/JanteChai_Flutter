@@ -80,8 +80,10 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
             const SizedBox(height: 24.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              alignment: WrapAlignment.center,
               children: [
                 ElevatedButton(
                   onPressed: () => _login(UserRole.user),
@@ -90,7 +92,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 ElevatedButton(
                   onPressed: () => _login(UserRole.reporter),
                   child: const Text('Login as Reporter'),
-                ),ElevatedButton(
+                ),
+                ElevatedButton(
                   onPressed: () => _login(UserRole.admin),
                   child: const Text('Login as Admin'),
                 ),
