@@ -129,6 +129,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       title: const Text('Settings'),
       onTap: () {
         Navigator.pop(context);
+        context.go('/settings');
       },
     ));
 

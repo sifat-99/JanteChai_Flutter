@@ -44,6 +44,7 @@ dependencies:
   hive: ^2.2.3
   http: ^1.5.0
   lottie: ^3.3.2
+  provider: ^6.1.2
   shared_preferences: ^2.2.3
   url_launcher: ^6.1.12
   jwt_decoder: ^2.0.0 # Added for JWT decoding

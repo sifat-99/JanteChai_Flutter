@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 class ArticleCard extends StatelessWidget {
   final Article article;
 
-
   String formatDate(String? dateString) {
     if (dateString == null || dateString.isEmpty) return '';
 
@@ -13,81 +12,90 @@ class ArticleCard extends StatelessWidget {
     return DateFormat('dd MMM yyyy').format(dateTime);
   }
 
-
   const ArticleCard({Key? key, required this.article}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-      elevation: 2.0,
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (article.imageUrl != null && article.imageUrl!.isNotEmpty)
-            Image.network(
-              article.imageUrl!,
-              height: 200,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 200,
-                  color: Colors.grey[200],
-                  child: Icon(
-                    Icons.broken_image,
-                    size: 40,
-                    color: Colors.grey[400],
-                  ),
-                );
-              },
-            ),
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  article.title,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
+    return SizedBox(
+      height: 350, // Set a fixed height for the card
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        elevation: 4.0,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.0),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (article.imageUrl != null && article.imageUrl!.isNotEmpty)
+              Expanded(
+                flex: 2,
+                child: Image.network(
+                  article.imageUrl!,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: Colors.grey[200],
+                      child: Icon(
+                        Icons.broken_image,
+                        size: 40,
+                        color: Colors.grey[400],
                       ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                    );
+                  },
                 ),
-                const SizedBox(height: 8.0),
-                Text(
-                  article.description ?? '',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 12.0),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              ),
+            Expanded(
+              flex: 3,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        'By ${article.reporterEmail ?? 'Unknown'}',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              fontStyle: FontStyle.italic,
-                            ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
                     Text(
-                      formatDate(article.pubDate),
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        fontStyle: FontStyle.italic,
-                      ),
+                      article.title,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8.0),
+                    Text(
+                      article.description ?? '',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const Spacer(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'By ${article.reporterEmail ?? 'Unknown'}',
+                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                  fontStyle: FontStyle.italic,
+                                ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Text(
+                          formatDate(article.pubDate),
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                fontStyle: FontStyle.italic,
+                              ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

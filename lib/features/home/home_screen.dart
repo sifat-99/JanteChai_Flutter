@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:jante_chai/models/article_model.dart';
 import 'package:jante_chai/services/news_api_service.dart';
 import 'package:go_router/go_router.dart';
@@ -56,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       context.go('/details', extra: article);
                     },
                     child: ArticleCard(article: article),
-                  );
+                  ).animate().fade(duration: 500.ms);
                 },
               );
             }

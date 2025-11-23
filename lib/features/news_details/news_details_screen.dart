@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:jante_chai/models/article_model.dart';
-import 'package:jante_chai/models/comment_model.dart';
 import 'package:jante_chai/services/auth_service.dart';
 import 'package:jante_chai/services/news_api_service.dart';
 

@@ -69,6 +69,9 @@ class MainShell extends StatelessWidget {
             case UserRole.reporter:
               GoRouter.of(context).go('/reporter_dashboard');
               break;
+              case UserRole.admin:
+              GoRouter.of(context).go('/admin_dashboard');
+              break;
             case UserRole.user:
             default:
               GoRouter.of(context).go('/user_dashboard');

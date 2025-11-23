@@ -34,6 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     if (userRole != null && mounted) {
+      print(UserRole);
       switch (userRole) {
         case 'admin':
           context.go('/admin_dashboard');

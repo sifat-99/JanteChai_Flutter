@@ -5,8 +5,8 @@ import 'package:http/http.dart' as http;
 // dependencies section if you haven't already.
 
 class ApiService {
-  // static const String _baseUrl = 'https://jante-chaii.vercel.app/api';
-  static const String _baseUrl = 'https://jante-chaii-backend.vercel.app/api'; // Updated to your Vercel backend URL
+  static const String _baseUrl = 'http://localhost:5001/api';
+  // static const String _baseUrl = 'https://jante-chaii-backend.vercel.app/api'; // Updated to your Vercel backend URL
   // Generic GET request
   static Future<Map<String, dynamic>> get(String endpoint) async {
     final uri = Uri.parse('$_baseUrl/$endpoint');
