@@ -166,8 +166,7 @@ class AuthService {
         final String? userId = decodedToken['id'] as String?;
         final String? userEmail = decodedToken['email'] as String?;
         final String? userRoleString = decodedToken['role'] as String?;
-        final String? userName =
-            decodedToken['name'] as String? ?? userEmail?.split('@').first;
+        final String? userName = decodedToken['name'] as String?;
         final String? userAvatarUrl = decodedToken['profilePic'] as String?;
         final String? reporterId = decodedToken['reporterId'] as String?;
         final String? createdAt = decodedToken['createdAt'] as String?;
@@ -230,16 +229,23 @@ class AuthService {
   }
 
   Future<dynamic> register(
-      String username, String email, String password, String profilePic, UserRole role) async {
+    String username,
+    String email,
+    String password,
+    String profilePic,
+    UserRole role,
+  ) async {
     fb_auth.UserCredential? userCredential;
     try {
-      userCredential = await fb_auth.FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: email.trim(),
-        password: password.trim(),
-      );
+      userCredential = await fb_auth.FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+            email: email.trim(),
+            password: password.trim(),
+          );
 
-      String endpoint =
-          role == UserRole.reporter ? 'reporters/register' : 'users/register';
+      String endpoint = role == UserRole.reporter
+          ? 'reporters/register'
+          : 'users/register';
 
       final backendResponse = await ApiService.post(endpoint, {
         'name': username,
@@ -279,6 +285,68 @@ class AuthService {
     isLoggedIn.value = false;
     currentUser.value = null;
     debugPrint('User logged out');
+  }
+
+  Future<bool> updateProfile({
+    String? name,
+    String? bio,
+    String? github,
+    String? avatarUrl,
+  }) async {
+    final user = currentUser.value;
+    if (user == null) return false;
+
+    String endpoint = "";
+    if (user.role == UserRole.reporter) {
+      endpoint = 'reporters/${user.id}';
+    } else if (user.role == UserRole.user) {
+      endpoint = 'users/${user.id}';
+    } else {
+      return false;
+    }
+
+    final Map<String, dynamic> data = {};
+    if (name != null) data['name'] = name;
+    if (bio != null) data['bio'] = bio;
+    if (github != null) data['github'] = github;
+    if (avatarUrl != null) data['profilePic'] = avatarUrl;
+
+    try {
+      final response = await ApiService.put(endpoint, data);
+
+      // Update local user data
+      final prefs = await SharedPreferences.getInstance();
+      if (name != null) {
+        await prefs.setString(_userNameKey, name);
+      }
+      if (bio != null) {
+        await prefs.setString(_userBioKey, bio);
+      }
+      if (github != null) {
+        await prefs.setString(_userGithubKey, github);
+      }
+      if (avatarUrl != null) {
+        await prefs.setString(_userProfilePicKey, avatarUrl);
+      }
+
+      // Update currentUser value to trigger listeners
+      currentUser.value = User(
+        id: user.id,
+        name: name ?? user.name,
+        email: user.email,
+        role: user.role,
+        avatarUrl: avatarUrl ?? user.avatarUrl,
+        bio: bio ?? user.bio,
+        github: github ?? user.github,
+        reporterId: user.reporterId,
+        createdAt: user.createdAt,
+      );
+
+      return true;
+    } catch (e) {
+      debugPrint('Error updating profile: $e');
+      return false;
+    }
   }
 }
 

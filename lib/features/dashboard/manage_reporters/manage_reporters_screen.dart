@@ -6,12 +6,8 @@ class ManageReportersScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Manage Reporters'),
-      ),
-      body: const Center(
-        child: Text('Here you can manage all reporters.'),
-      ),
+      appBar: AppBar(title: const Text('Manage Reporters')),
+      body: const Center(child: Text('Here you can manage all reporters.')),
     );
   }
 }

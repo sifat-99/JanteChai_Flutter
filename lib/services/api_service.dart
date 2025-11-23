@@ -5,8 +5,9 @@ import 'package:http/http.dart' as http;
 // dependencies section if you haven't already.
 
 class ApiService {
-  static const String _baseUrl = 'http://localhost:5001/api';
-  // static const String _baseUrl = 'https://jante-chaii-backend.vercel.app/api'; // Updated to your Vercel backend URL
+  // static const String _baseUrl = 'http://localhost:5001/api';
+  static const String _baseUrl =
+      'https://jante-chaii-backend.vercel.app/api'; // Updated to your Vercel backend URL
   // Generic GET request
   static Future<Map<String, dynamic>> get(String endpoint) async {
     final uri = Uri.parse('$_baseUrl/$endpoint');
@@ -17,7 +18,9 @@ class ApiService {
         return json.decode(response.body);
       } else {
         // Handle non-200 responses
-        throw Exception('Failed to load data from $endpoint: ${response.statusCode} - ${response.body}');
+        throw Exception(
+          'Failed to load data from $endpoint: ${response.statusCode} - ${response.body}',
+        );
       }
     } catch (e) {
       // Handle network errors
@@ -26,7 +29,10 @@ class ApiService {
   }
 
   // Generic POST request
-  static Future<Map<String, dynamic>> post(String endpoint, Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> post(
+    String endpoint,
+    Map<String, dynamic> data,
+  ) async {
     final uri = Uri.parse('$_baseUrl/$endpoint');
     try {
       final response = await http.post(
@@ -42,7 +48,9 @@ class ApiService {
           return {}; // Return an empty map for success with no body
         }
       } else {
-        throw Exception('Failed to post data to $endpoint: ${response.statusCode} - ${response.body}');
+        throw Exception(
+          'Failed to post data to $endpoint: ${response.statusCode} - ${response.body}',
+        );
       }
     } catch (e) {
       throw Exception('Failed to connect to $endpoint: $e');
@@ -50,7 +58,10 @@ class ApiService {
   }
 
   // Generic PUT request
-  static Future<Map<String, dynamic>> put(String endpoint, Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> put(
+    String endpoint,
+    Map<String, dynamic> data,
+  ) async {
     final uri = Uri.parse('$_baseUrl/$endpoint');
     try {
       final response = await http.put(
@@ -66,7 +77,9 @@ class ApiService {
           return {}; // Return an empty map for success with no body
         }
       } else {
-        throw Exception('Failed to put data to $endpoint: ${response.statusCode} - ${response.body}');
+        throw Exception(
+          'Failed to put data to $endpoint: ${response.statusCode} - ${response.body}',
+        );
       }
     } catch (e) {
       throw Exception('Failed to connect to $endpoint: $e');
@@ -74,14 +87,24 @@ class ApiService {
   }
 
   // Generic DELETE request
-  static Future<void> delete(String endpoint) async {
+  static Future<void> delete(
+    String endpoint, {
+    Map<String, dynamic>? body,
+  }) async {
     final uri = Uri.parse('$_baseUrl/$endpoint');
+    print(uri);
     try {
-      final response = await http.delete(uri);
+      final response = await http.delete(
+        uri,
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        body: body != null ? json.encode(body) : null,
+      );
 
       if (response.statusCode != 200 && response.statusCode != 204) {
         // Handle non-200 responses
-        throw Exception('Failed to delete data from $endpoint: ${response.statusCode} - ${response.body}');
+        throw Exception(
+          'Failed to delete data from $endpoint: ${response.statusCode} - ${response.body}',
+        );
       }
     } catch (e) {
       // Handle network errors

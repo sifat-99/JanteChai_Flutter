@@ -60,7 +60,10 @@ class NewsApiService {
     }
   }
 
-  static Future<void> updateNews(String newsId, Map<String, dynamic> data) async {
+  static Future<void> updateNews(
+    String newsId,
+    Map<String, dynamic> data,
+  ) async {
     try {
       await ApiService.put('news/$newsId', data);
     } catch (e) {
@@ -68,9 +71,12 @@ class NewsApiService {
     }
   }
 
-  static Future<void> deleteNews(String newsId) async {
+  static Future<void> deleteNews(String newsId, String reporterEmail) async {
     try {
-      await ApiService.delete('news/$newsId');
+      await ApiService.delete(
+        'news/$newsId',
+        body: {'reporterEmail': reporterEmail},
+      );
     } catch (e) {
       rethrow;
     }

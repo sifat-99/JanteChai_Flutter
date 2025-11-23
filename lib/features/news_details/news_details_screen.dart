@@ -3,6 +3,8 @@ import 'package:jante_chai/models/article_model.dart';
 import 'package:jante_chai/services/auth_service.dart';
 import 'package:jante_chai/services/news_api_service.dart';
 
+import 'package:jante_chai/utils/image_utils.dart';
+
 class NewsDetailsScreen extends StatefulWidget {
   final Article article;
 
@@ -62,9 +64,9 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
         await _refreshArticle();
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to add comment: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Failed to add comment: $e')));
         }
       }
     }
@@ -92,9 +94,9 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
         await _refreshArticle();
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to add reply: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Failed to add reply: $e')));
         }
       }
     }
@@ -113,12 +115,17 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (_currentArticle.imageUrl != null && _currentArticle.imageUrl!.isNotEmpty)
+            if (_currentArticle.imageUrl != null &&
+                _currentArticle.imageUrl!.isNotEmpty)
               Image.network(
-                _currentArticle.imageUrl!,
+                ImageUtils.getCompatibleImageUrl(_currentArticle.imageUrl!),
                 width: double.infinity,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
+                  debugPrint(
+                    'Image failed to load in details: ${_currentArticle.imageUrl}',
+                  );
+                  debugPrint('Error: $error');
                   return Container(
                     height: 200,
                     color: Colors.grey[200],
@@ -133,9 +140,9 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
             const SizedBox(height: 16.0),
             Text(
               _currentArticle.title,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8.0),
             Text(
@@ -147,9 +154,9 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
             const SizedBox(height: 16.0),
             Text(
               'Comments (${_currentArticle.comments?.length})',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             ListView.builder(
               shrinkWrap: true,
@@ -157,8 +164,13 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
               itemCount: _currentArticle.comments?.length,
               itemBuilder: (context, index) {
                 final comment = _currentArticle.comments![index];
-                _replyControllers.putIfAbsent(comment.id, () => TextEditingController());
-                final areRepliesVisible = _expandedCommentIds.contains(comment.id);
+                _replyControllers.putIfAbsent(
+                  comment.id,
+                  () => TextEditingController(),
+                );
+                final areRepliesVisible = _expandedCommentIds.contains(
+                  comment.id,
+                );
                 return Card(
                   margin: const EdgeInsets.symmetric(vertical: 8.0),
                   child: Padding(
@@ -189,7 +201,11 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
                         ),
                         if (_replyingToCommentId == comment.id)
                           Padding(
-                            padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8.0),
+                            padding: const EdgeInsets.only(
+                              left: 16.0,
+                              right: 16.0,
+                              bottom: 8.0,
+                            ),
                             child: TextField(
                               controller: _replyControllers[comment.id],
                               decoration: InputDecoration(
@@ -212,9 +228,11 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
                                 }
                               });
                             },
-                            child: Text(areRepliesVisible
-                                ? 'Hide Replies'
-                                : 'Show Replies (${comment.replies.length})'),
+                            child: Text(
+                              areRepliesVisible
+                                  ? 'Hide Replies'
+                                  : 'Show Replies (${comment.replies.length})',
+                            ),
                           ),
                         if (areRepliesVisible && comment.replies.isNotEmpty)
                           Padding(
@@ -231,7 +249,7 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
                                 );
                               },
                             ),
-                          )
+                          ),
                       ],
                     ),
                   ),
@@ -243,7 +261,9 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
               controller: _commentController,
               enabled: isLoggedIn,
               decoration: InputDecoration(
-                hintText: isLoggedIn ? 'Add a comment...' : 'Please log in to comment',
+                hintText: isLoggedIn
+                    ? 'Add a comment...'
+                    : 'Please log in to comment',
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.send),
                   onPressed: isLoggedIn ? _addComment : _showLoginAlert,

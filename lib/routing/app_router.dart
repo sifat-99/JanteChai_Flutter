@@ -16,6 +16,7 @@ import 'package:jante_chai/features/home/home_screen.dart';
 import 'package:jante_chai/features/main_shell.dart';
 import 'package:jante_chai/features/my_comments/my_comments_screen.dart';
 import 'package:jante_chai/features/profile/profile_screen.dart';
+import 'package:jante_chai/features/profile/edit_profile_screen.dart';
 import 'package:jante_chai/features/saved/saved_screen.dart';
 import 'package:jante_chai/features/saved_news/saved_news_screen.dart';
 import 'package:jante_chai/features/settings/settings_screen.dart';
@@ -32,7 +33,19 @@ final goRouter = GoRouter(
   routes: [
     GoRoute(
       path: '/welcome',
-      builder: (context, state) => const WelcomeScreen(),
+      pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+        context: context,
+        state: state,
+        child: const WelcomeScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/edit-profile',
+      pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+        context: context,
+        state: state,
+        child: const EditProfileScreen(),
+      ),
     ),
     ShellRoute(
       navigatorKey: _shellNavigatorKey,
@@ -41,82 +54,191 @@ final goRouter = GoRouter(
       },
       routes: [
         GoRoute(
-            path: '/',
-            builder: (context, state) => const HomeScreen(),
-            routes: [
-              GoRoute(
-                path: 'details',
-                builder: (context, state) {
-                  final article = state.extra as Article;
-                  return NewsDetailsScreen(article: article);
-                },
-              ),
-            ]),
+          path: '/',
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context,
+            state: state,
+            child: const HomeScreen(),
+          ),
+          routes: [
+            GoRoute(
+              path: 'details',
+              pageBuilder: (context, state) {
+                final article = state.extra as Article;
+                return _buildPageWithDefaultTransition(
+                  context: context,
+                  state: state,
+                  child: NewsDetailsScreen(article: article),
+                );
+              },
+            ),
+          ],
+        ),
         GoRoute(
           path: '/categories',
-          builder: (context, state) => const CategoriesScreen(),
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context,
+            state: state,
+            child: const CategoriesScreen(),
+          ),
         ),
         GoRoute(
           path: '/saved',
-          builder: (context, state) => const SavedScreen(),
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context,
+            state: state,
+            child: const SavedScreen(),
+          ),
         ),
-        GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen()),
         GoRoute(
-            path: '/register',
-            builder: (context, state) => const RegisterScreen()),
-        GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+          path: '/profile',
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context,
+            state: state,
+            child: const ProfileScreen(),
+          ),
+        ),
+        GoRoute(
+          path: '/register',
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context,
+            state: state,
+            child: const RegisterScreen(),
+          ),
+        ),
+        GoRoute(
+          path: '/login',
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context,
+            state: state,
+            child: const LoginScreen(),
+          ),
+        ),
         GoRoute(
           path: '/admin_dashboard',
-          builder: (context, state) => const AdminDashboard(),
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context,
+            state: state,
+            child: const AdminDashboard(),
+          ),
         ),
         GoRoute(
           path: '/user_dashboard',
-          builder: (context, state) => const UserDashboard(),
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context,
+            state: state,
+            child: const UserDashboard(),
+          ),
         ),
         GoRoute(
           path: '/reporter_dashboard',
-          builder: (context, state) => const ReporterDashboard(),
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context,
+            state: state,
+            child: const ReporterDashboard(),
+          ),
         ),
         GoRoute(
           path: '/publish_news',
-          builder: (context, state) => const PublishNewsScreen(),
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context,
+            state: state,
+            child: const PublishNewsScreen(),
+          ),
         ),
         GoRoute(
           path: '/published_news',
-          builder: (context, state) => const PublishedNewsScreen(),
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context,
+            state: state,
+            child: const PublishedNewsScreen(),
+          ),
         ),
         GoRoute(
           path: '/saved-news',
-          builder: (context, state) => const SavedNewsScreen(),
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context,
+            state: state,
+            child: const SavedNewsScreen(),
+          ),
         ),
         GoRoute(
           path: '/my-comments',
-          builder: (context, state) => const MyCommentsScreen(),
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context,
+            state: state,
+            child: const MyCommentsScreen(),
+          ),
         ),
         GoRoute(
           path: '/settings',
-          builder: (context, state) => const SettingsScreen(),
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context,
+            state: state,
+            child: const SettingsScreen(),
+          ),
         ),
         GoRoute(
           path: '/manage-news',
-          builder: (context, state) => const ManageNewsScreen(),
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context,
+            state: state,
+            child: const ManageNewsScreen(),
+          ),
         ),
         GoRoute(
           path: '/manage-users',
-          builder: (context, state) => const ManageUsersScreen(),
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context,
+            state: state,
+            child: const ManageUsersScreen(),
+          ),
         ),
         GoRoute(
           path: '/manage-reporters',
-          builder: (context, state) => const ManageReportersScreen(),
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context,
+            state: state,
+            child: const ManageReportersScreen(),
+          ),
         ),
         GoRoute(
           path: '/edit-news',
-          builder: (context, state) {
+          pageBuilder: (context, state) {
             final article = state.extra as Article;
-            return EditNewsScreen(article: article);
+            return _buildPageWithDefaultTransition(
+              context: context,
+              state: state,
+              child: EditNewsScreen(article: article),
+            );
           },
         ),
       ],
     ),
   ],
 );
+
+CustomTransitionPage _buildPageWithDefaultTransition<T>({
+  required BuildContext context,
+  required GoRouterState state,
+  required Widget child,
+}) {
+  return CustomTransitionPage<T>(
+    key: state.pageKey,
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      const begin = Offset(1.0, 0.0);
+      const end = Offset.zero;
+      const curve = Curves.easeInOut;
+
+      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+      var offsetAnimation = animation.drive(tween);
+
+      return SlideTransition(
+        position: offsetAnimation,
+        child: FadeTransition(opacity: animation, child: child),
+      );
+    },
+    transitionDuration: const Duration(milliseconds: 300),
+  );
+}

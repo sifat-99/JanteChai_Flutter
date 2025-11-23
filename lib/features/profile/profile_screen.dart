@@ -71,10 +71,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           if (isLoggedIn) // Show Edit Profile button only if logged in
             ElevatedButton(
               onPressed: () {
-                // TODO: Navigate to edit profile screen
+                context.push(
+                  '/edit-profile',
+                ); // Navigate to Settings as Edit Profile placeholder
               },
               child: const Text('Edit Profile'),
-            ) 
+            )
           else // Show Login button if not logged in
             ElevatedButton(
               onPressed: () {
@@ -95,15 +97,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         padding: EdgeInsets.zero,
         children: <Widget>[
           DrawerHeader(
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor,
-            ),
+            decoration: BoxDecoration(color: Theme.of(context).primaryColor),
             child: Text(
-              isLoggedIn ? 'Welcome, ${_currentUser?.name ?? 'User'}' : 'Guest User',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-              ),
+              isLoggedIn
+                  ? 'Welcome, ${_currentUser?.name ?? 'User'}'
+                  : 'Guest User',
+              style: const TextStyle(color: Colors.white, fontSize: 24),
             ),
           ),
           ..._buildDrawerItems(context, isLoggedIn),
@@ -116,107 +115,132 @@ class _ProfileScreenState extends State<ProfileScreen> {
     List<Widget> items = [];
 
     // Common routes for all (logged in or not)
-    items.add(ListTile(
-      leading: const Icon(Icons.home),
-      title: const Text('Home'),
-      onTap: () {
-        Navigator.pop(context); // Close the drawer
-        context.go('/'); // Navigate to Home
-      },
-    ));
-    items.add(ListTile(
-      leading: const Icon(Icons.settings),
-      title: const Text('Settings'),
-      onTap: () {
-        Navigator.pop(context);
-        context.go('/settings');
-      },
-    ));
+    items.add(
+      ListTile(
+        leading: const Icon(Icons.home),
+        title: const Text('Home'),
+        onTap: () {
+          Navigator.pop(context); // Close the drawer
+          context.go('/'); // Navigate to Home
+        },
+      ),
+    );
+    items.add(
+      ListTile(
+        leading: const Icon(Icons.settings),
+        title: const Text('Settings'),
+        onTap: () {
+          Navigator.pop(context);
+          context.go('/settings');
+        },
+      ),
+    );
 
     if (isLoggedIn && _currentUser != null) {
       // Role-specific routes for logged-in users
       if (_userRole == UserRole.user) {
-        items.add(ListTile(
-          leading: const Icon(Icons.bookmark),
-          title: const Text('Saved Posts'),
-          onTap: () {
-            Navigator.pop(context);
-            // TODO: Navigate to Saved Posts
-          },
-        ));
-      } else if (_userRole == UserRole.reporter) {
-        items.add(ListTile(
-          leading: const Icon(Icons.article),
-          title: const Text('Manage Articles'),
-          onTap: () {
-            Navigator.pop(context);
-            // TODO: Navigate to Manage Articles
-          },
-        ));
-        items.add(ListTile(
-          leading: const Icon(Icons.analytics),
-          title: const Text('View Reports'),
-          onTap: () {
-            Navigator.pop(context);
-            // TODO: Navigate to View Reports
-          },
-        ));
+        items.add(
+          ListTile(
+            leading: const Icon(Icons.bookmark),
+            title: const Text('Saved Posts'),
+            onTap: () {
+              Navigator.pop(context);
+              context.push('/saved');
+            },
+          ),
+        );
       } else if (_userRole == UserRole.admin) {
-        items.add(ListTile(
-          leading: const Icon(Icons.people),
-          title: const Text('Manage Users'),
-          onTap: () {
-            Navigator.pop(context);
-            // TODO: Navigate to Manage Users
-          },
-        ));
-        items.add(ListTile(
-          leading: const Icon(Icons.dashboard),
-          title: const Text('Admin Dashboard'),
-          onTap: () {
-            Navigator.pop(context);
-            // TODO: Navigate to Admin Dashboard
-          },
-        ));
-        items.add(ListTile(
-          leading: const Icon(Icons.analytics_outlined),
-          title: const Text('System Logs'),
-          onTap: () {
-            Navigator.pop(context);
-            // TODO: Navigate to System Logs
-          },
-        ));
+        items.add(
+          ListTile(
+            leading: const Icon(Icons.article),
+            title: const Text('Manage Articles'),
+            onTap: () {
+              Navigator.pop(context);
+              context.push('/manage-news');
+            },
+          ),
+        );
+        items.add(
+          ListTile(
+            leading: const Icon(Icons.analytics),
+            title: const Text('View Reports'),
+            onTap: () {
+              Navigator.pop(context);
+              context.push('/reporter_dashboard');
+            },
+          ),
+        );
+      } else if (_userRole == UserRole.admin) {
+        items.add(
+          ListTile(
+            leading: const Icon(Icons.people),
+            title: const Text('Manage Users'),
+            onTap: () {
+              Navigator.pop(context);
+              context.push('/manage-users');
+            },
+          ),
+        );
+        items.add(
+          ListTile(
+            leading: const Icon(Icons.dashboard),
+            title: const Text('Admin Dashboard'),
+            onTap: () {
+              Navigator.pop(context);
+              context.push('/admin_dashboard');
+            },
+          ),
+        );
+        items.add(
+          ListTile(
+            leading: const Icon(Icons.analytics_outlined),
+            title: const Text('System Logs'),
+            onTap: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('System Logs feature coming soon!'),
+                ),
+              );
+            },
+          ),
+        );
       }
 
       items.add(const Divider()); // A separator
-      items.add(ListTile(
-        leading: const Icon(Icons.logout),
-        title: const Text('Logout'),
-        onTap: () async {
-          Navigator.pop(context); // Close the drawer
-          await authService.logout(); // Perform Logout
-        },
-      ));
+      items.add(
+        ListTile(
+          leading: const Icon(Icons.logout),
+          title: const Text('Logout'),
+          onTap: () async {
+            Navigator.pop(context); // Close the drawer
+            await authService.logout(); // Perform Logout
+          },
+        ),
+      );
     } else {
       // Add login/registration options for logged-out users in drawer if desired
       items.add(const Divider());
-      items.add(ListTile(
-        leading: const Icon(Icons.login),
-        title: const Text('Login'),
-        onTap: () {
-          Navigator.pop(context);
-          context.push('/login'); // Navigate to Login screen
-        },
-      ));
-      items.add(ListTile(
-        leading: const Icon(Icons.person_add),
-        title: const Text('Register'),
-        onTap: () {
-          Navigator.pop(context);
-          // TODO: Navigate to Register screen
-          print('Navigate to Register from Drawer');
-        },
-      ));
+      items.add(
+        ListTile(
+          leading: const Icon(Icons.login),
+          title: const Text('Login'),
+          onTap: () {
+            Navigator.pop(context);
+            context.push('/login'); // Navigate to Login screen
+          },
+        ),
+      );
+      items.add(
+        ListTile(
+          leading: const Icon(Icons.person_add),
+          title: const Text('Register'),
+          onTap: () {
+            Navigator.pop(context);
+            context.push('/register');
+          },
+        ),
+      );
     }
 
     return items;
@@ -224,26 +248,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildProfileHeader(bool isLoggedIn) {
     final String displayName = _currentUser?.name ?? 'Guest User';
-    final String displayHandle = _currentUser?.reporterId ?? (_currentUser?.email ?? 'Not logged in');
+    final String displayHandle =
+        _currentUser?.reporterId ?? (_currentUser?.email ?? 'Not logged in');
     final String? avatarUrl = _currentUser?.avatarUrl;
 
     return Column(
       children: <Widget>[
         CircleAvatar(
           radius: 60,
-          child: avatarUrl != null && avatarUrl.isNotEmpty
-              ? ClipOval(
-                  child: Image.network(
-                    avatarUrl,
-                    fit: BoxFit.cover,
-                    width: 120.0,
-                    height: 120.0,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Icon(Icons.person, size: 60);
-                    },
-                  ),
-                )
-              : const Icon(Icons.person, size: 60),
+          backgroundColor: Colors.grey[200],
+          backgroundImage: avatarUrl != null && avatarUrl.isNotEmpty
+              ? NetworkImage(avatarUrl)
+              : null,
+          onBackgroundImageError: avatarUrl != null && avatarUrl.isNotEmpty
+              ? (_, __) {
+                  // Handle error silently
+                }
+              : null,
+          child: avatarUrl == null || avatarUrl.isEmpty
+              ? const Icon(Icons.person, size: 60, color: Colors.grey)
+              : null,
         ),
         const SizedBox(height: 16),
         Text(
@@ -272,28 +296,55 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildBioSection(bool isLoggedIn) {
-    final String displayBio = _currentUser?.bio ?? 'Please log in to see your profile details.';
+    final String displayBio =
+        _currentUser?.bio ?? 'Please log in to see your profile details.';
     final String displayEmail = _currentUser?.email ?? 'N/A';
-    final String displayGithub = _currentUser?.github != null ? 'github.com/${_currentUser!.github}' : 'N/A';
+    final String displayGithub = _currentUser?.github != null
+        ? 'github.com/${_currentUser!.github}'
+        : 'N/A';
     final String? createdAt = _currentUser?.createdAt;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        const Text('About Me', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        Text(
-          displayBio,
-          style: const TextStyle(fontSize: 16, height: 1.4),
+        const Text(
+          'About Me',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 16),
-        Row(children: [const Icon(Icons.email_outlined, size: 20), const SizedBox(width: 8), Text(displayEmail, style: const TextStyle(fontSize: 16))]),
         const SizedBox(height: 8),
-        Row(children: [const Icon(Icons.link_outlined, size: 20), const SizedBox(width: 8), Text(displayGithub, style: const TextStyle(fontSize: 16, color: Colors.blue))]),
+        Text(displayBio, style: const TextStyle(fontSize: 16, height: 1.4)),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            const Icon(Icons.email_outlined, size: 20),
+            const SizedBox(width: 8),
+            Text(displayEmail, style: const TextStyle(fontSize: 16)),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            const Icon(Icons.link_outlined, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              displayGithub,
+              style: const TextStyle(fontSize: 16, color: Colors.blue),
+            ),
+          ],
+        ),
         if (createdAt != null)
           Padding(
             padding: const EdgeInsets.only(top: 8.0),
-            child: Row(children: [const Icon(Icons.calendar_today_outlined, size: 20), const SizedBox(width: 8), Text('Member since: $createdAt', style: const TextStyle(fontSize: 16))]),
+            child: Row(
+              children: [
+                const Icon(Icons.calendar_today_outlined, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Member since: $createdAt',
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ],
+            ),
           ),
       ],
     );
@@ -310,7 +361,10 @@ class _InfoTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: <Widget>[
-        Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        Text(
+          value,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 4),
         Text(label, style: const TextStyle(fontSize: 14, color: Colors.grey)),
       ],

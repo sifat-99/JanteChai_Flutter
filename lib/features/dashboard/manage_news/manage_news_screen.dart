@@ -22,9 +22,7 @@ class _ManageNewsScreenState extends State<ManageNewsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Manage News'),
-      ),
+      appBar: AppBar(title: const Text('Manage News')),
       body: FutureBuilder<List<Article>>(
         future: _newsFuture,
         builder: (context, snapshot) {

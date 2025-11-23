@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jante_chai/utils/image_utils.dart';
 import 'package:jante_chai/models/article_model.dart';
 import 'package:intl/intl.dart';
 
@@ -32,10 +33,12 @@ class ArticleCard extends StatelessWidget {
               Expanded(
                 flex: 2,
                 child: Image.network(
-                  article.imageUrl!,
+                  ImageUtils.getCompatibleImageUrl(article.imageUrl!),
                   width: double.infinity,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
+                    debugPrint('Image failed to load: ${article.imageUrl}');
+                    debugPrint('Error: $error');
                     return Container(
                       color: Colors.grey[200],
                       child: Icon(
@@ -57,8 +60,8 @@ class ArticleCard extends StatelessWidget {
                     Text(
                       article.title,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        fontWeight: FontWeight.bold,
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -76,17 +79,15 @@ class ArticleCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             'By ${article.reporterEmail ?? 'Unknown'}',
-                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                  fontStyle: FontStyle.italic,
-                                ),
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(fontStyle: FontStyle.italic),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         Text(
                           formatDate(article.pubDate),
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                fontStyle: FontStyle.italic,
-                              ),
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(fontStyle: FontStyle.italic),
                         ),
                       ],
                     ),
