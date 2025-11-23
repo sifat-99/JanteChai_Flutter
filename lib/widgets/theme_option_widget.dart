@@ -40,13 +40,17 @@ class ThemeOptionWidget extends StatelessWidget {
             color: backgroundColor,
             borderRadius: BorderRadius.circular(15.0),
             border: Border.all(
-              color: isSelected ? Theme.of(context).colorScheme.primary : Colors.transparent,
+              color: isSelected
+                  ? Theme.of(context).colorScheme.primary
+                  : Colors.transparent,
               width: 2.0,
             ),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withOpacity(0.3),
                       spreadRadius: 2,
                       blurRadius: 5,
                       offset: const Offset(0, 3),
@@ -71,7 +75,7 @@ class ThemeOptionWidget extends StatelessWidget {
                 Icon(
                   Icons.check_circle,
                   color: Theme.of(context).colorScheme.primary,
-                )
+                ),
             ],
           ),
         ),

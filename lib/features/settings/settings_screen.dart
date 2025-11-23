@@ -11,18 +11,13 @@ class SettingsScreen extends StatelessWidget {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
+      appBar: AppBar(title: const Text('Settings')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Theme',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
+            Text('Theme', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 24),
             ThemeOptionWidget(
               title: 'Light Mode',

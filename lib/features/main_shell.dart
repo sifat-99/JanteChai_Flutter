@@ -14,10 +14,7 @@ class MainShell extends StatelessWidget {
       body: child,
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
             icon: Icon(Icons.category),
             label: 'Categories',
@@ -26,10 +23,7 @@ class MainShell extends StatelessWidget {
             icon: Icon(Icons.dashboard),
             label: 'Dashboard',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
         currentIndex: _calculateSelectedIndex(context),
         onTap: (int index) => _onItemTapped(index, context),
@@ -69,7 +63,7 @@ class MainShell extends StatelessWidget {
             case UserRole.reporter:
               GoRouter.of(context).go('/reporter_dashboard');
               break;
-              case UserRole.admin:
+            case UserRole.admin:
               GoRouter.of(context).go('/admin_dashboard');
               break;
             case UserRole.user:

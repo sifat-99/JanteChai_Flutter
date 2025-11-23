@@ -2,7 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:jante_chai/firebase_options.dart';
 import 'package:jante_chai/providers/theme_provider.dart';
-import 'package:jante_chai/routing/app_router.dart'; // Import your app_router
+import 'package:jante_chai/routing/app_router.dart';
 import 'package:jante_chai/theme.dart';
 import 'package:provider/provider.dart';
 

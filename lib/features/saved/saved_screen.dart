@@ -6,12 +6,8 @@ class SavedScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Saved Articles'),
-      ),
-      body: const Center(
-        child: Text('Saved Articles Screen'),
-      ),
+      appBar: AppBar(title: const Text('Saved Articles')),
+      body: const Center(child: Text('Saved Articles Screen')),
     );
   }
 }

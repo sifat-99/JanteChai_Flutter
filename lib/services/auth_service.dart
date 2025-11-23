@@ -18,6 +18,7 @@ class User {
   final String? github;
   final String? reporterId;
   final String? createdAt;
+  final String? status; // Added status field
 
   User({
     required this.id,
@@ -29,12 +30,13 @@ class User {
     this.github,
     this.reporterId,
     this.createdAt,
+    this.status,
   });
 
   // Factory constructor to create a User from a JSON map
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['userId'] ?? '',
+      id: json['_id'] ?? '',
       name: json['name'] ?? '',
       email: json['email'] ?? '',
       role: _stringToUserRole(json['role']),
@@ -43,6 +45,7 @@ class User {
       github: json['github'],
       reporterId: json['reporterId'],
       createdAt: json['createdAt'],
+      status: json['status'],
     );
   }
 
@@ -63,7 +66,7 @@ class User {
 
   @override
   String toString() {
-    return 'User(id: $id, name: $name, email: $email, role: $role, avatarUrl: $avatarUrl, bio: $bio, github: $github, reporterId: $reporterId, createdAt: $createdAt)';
+    return 'User(id: $id, name: $name, email: $email, role: $role, avatarUrl: $avatarUrl, bio: $bio, github: $github, reporterId: $reporterId, createdAt: $createdAt, status: $status)';
   }
 }
 
@@ -301,6 +304,8 @@ class AuthService {
       endpoint = 'reporters/${user.id}';
     } else if (user.role == UserRole.user) {
       endpoint = 'users/${user.id}';
+    } else if (user.role == UserRole.admin) {
+      endpoint = 'admins/${user.id}';
     } else {
       return false;
     }
