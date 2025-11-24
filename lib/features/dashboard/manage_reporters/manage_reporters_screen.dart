@@ -79,72 +79,135 @@ class _ManageReportersScreenState extends State<ManageReportersScreen> {
               ),
             )
           : SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: DataTable(
-                columns: const [
-                  DataColumn(label: Text('Name')),
-                  DataColumn(label: Text('Email')),
-                  DataColumn(label: Text('Status')),
-                  DataColumn(label: Text('Actions')),
-                ],
-                rows: _reporters.map((reporter) {
-                  final status = reporter.status ?? 'Unknown';
-                  return DataRow(
-                    cells: [
-                      DataCell(Text(reporter.name)),
-                      DataCell(Text(reporter.email)),
-                      DataCell(
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _getStatusColor(status),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            status,
-                            style: const TextStyle(color: Colors.white),
+              padding: const EdgeInsets.all(16.0),
+              scrollDirection: Axis.vertical,
+              child: Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: DataTable(
+                    headingRowColor: MaterialStateProperty.all(
+                      Theme.of(context).colorScheme.primary,
+                    ),
+                    columnSpacing: 24,
+                    horizontalMargin: 24,
+                    columns: const [
+                      DataColumn(
+                        label: Text(
+                          'Name',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
                       ),
-                      DataCell(
-                        DropdownButton<String>(
-                          value:
-                              [
-                                'approved',
-                                'pending',
-                                'fired',
-                              ].contains(status.toLowerCase())
-                              ? status.toLowerCase()
-                              : null,
-                          hint: const Text('Action'),
-                          items: const [
-                            DropdownMenuItem(
-                              value: 'approved',
-                              child: Text('Approve'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'pending',
-                              child: Text('Pending'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'fired',
-                              child: Text('Fire'),
-                            ),
-                          ],
-                          onChanged: (value) {
-                            if (value != null &&
-                                status.toLowerCase() != value) {
-                              _updateStatus(reporter.id, {'status': value});
-                            }
-                          },
+                      DataColumn(
+                        label: Text(
+                          'Email',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Text(
+                          'Status',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Text(
+                          'Actions',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ],
-                  );
-                }).toList(),
+                    rows: _reporters.map((reporter) {
+                      final status = reporter.status ?? 'Unknown';
+                      return DataRow(
+                        cells: [
+                          DataCell(
+                            Text(
+                              reporter.name,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                            ),
+                          ),
+                          DataCell(
+                            Text(
+                              reporter.email,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                            ),
+                          ),
+                          DataCell(
+                            Chip(
+                              label: Text(
+                                status.toUpperCase(),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface,
+                                ),
+                              ),
+                              backgroundColor: _getStatusColor(status),
+                              padding: EdgeInsets.zero,
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
+                            ),
+                          ),
+                          DataCell(
+                            DropdownButton<String>(
+                              value:
+                                  [
+                                    'approved',
+                                    'pending',
+                                    'fired',
+                                  ].contains(status.toLowerCase())
+                                  ? status.toLowerCase()
+                                  : null,
+                              hint: const Text('Action'),
+                              items: const [
+                                DropdownMenuItem(
+                                  value: 'approved',
+                                  child: Text('Approve'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'pending',
+                                  child: Text('Pending'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'fired',
+                                  child: Text('Fire'),
+                                ),
+                              ],
+                              onChanged: (value) {
+                                if (value != null &&
+                                    status.toLowerCase() != value) {
+                                  _updateStatus(reporter.id, {'status': value});
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                ),
               ),
             ),
     );

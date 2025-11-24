@@ -10,6 +10,10 @@ class UserDashboard extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('User Dashboard'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/'),
+        ),
       ),
       body: ListView(
         children: [
@@ -17,28 +21,28 @@ class UserDashboard extends StatelessWidget {
             leading: const FaIcon(FontAwesomeIcons.solidUser),
             title: const Text('My Profile'),
             onTap: () {
-              context.go('/profile');
+              context.push('/profile');
             },
           ),
           ListTile(
             leading: const FaIcon(FontAwesomeIcons.solidBookmark),
             title: const Text('Saved News'),
             onTap: () {
-              context.go('/saved-news');
+              context.push('/saved-news');
             },
           ),
           ListTile(
             leading: const FaIcon(FontAwesomeIcons.solidComment),
             title: const Text('My Comments'),
             onTap: () {
-              context.go('/my-comments');
+              context.push('/my-comments');
             },
           ),
           ListTile(
             leading: const FaIcon(FontAwesomeIcons.gear),
             title: const Text('Settings'),
             onTap: () {
-              context.go('/settings');
+              context.push('/settings');
             },
           ),
         ],

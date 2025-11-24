@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:jante_chai/features/auth/login_screen.dart';
 import 'package:jante_chai/features/auth/register_screen.dart';
 import 'package:jante_chai/features/categories/categories_screen.dart';
+import 'package:jante_chai/features/categories/category_news_screen.dart';
 import 'package:jante_chai/features/dashboard/admin_dashboard.dart';
 import 'package:jante_chai/features/dashboard/manage_news/edit_news_screen.dart';
 import 'package:jante_chai/features/dashboard/manage_news/manage_news_screen.dart';
@@ -210,6 +211,22 @@ final goRouter = GoRouter(
               context: context,
               state: state,
               child: EditNewsScreen(article: article),
+            );
+          },
+        ),
+        GoRoute(
+          path: '/category-news',
+          pageBuilder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>;
+            final categoryName = extra['categoryName'] as String;
+            final articles = extra['articles'] as List<Article>;
+            return _buildPageWithDefaultTransition(
+              context: context,
+              state: state,
+              child: CategoryNewsScreen(
+                categoryName: categoryName,
+                articles: articles,
+              ),
             );
           },
         ),

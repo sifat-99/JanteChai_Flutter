@@ -39,7 +39,8 @@ class MainShell extends StatelessWidget {
       return 1;
     }
     if (location.startsWith('/user_dashboard') ||
-        location.startsWith('/reporter_dashboard')) {
+        location.startsWith('/reporter_dashboard') ||
+        location.startsWith('/admin_dashboard')) {
       return 2;
     }
     if (location.startsWith('/profile')) {
@@ -48,7 +49,7 @@ class MainShell extends StatelessWidget {
     return 0;
   }
 
-  void _onItemTapped(int index, BuildContext context) {
+  Future<void> _onItemTapped(int index, BuildContext context) async {
     switch (index) {
       case 0:
         GoRouter.of(context).go('/');
@@ -57,6 +58,25 @@ class MainShell extends StatelessWidget {
         GoRouter.of(context).go('/categories');
         break;
       case 2:
+        if (authService.isLoading.value) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) =>
+                const Center(child: CircularProgressIndicator()),
+          );
+
+          // Wait for loading to complete
+          await Future.doWhile(() async {
+            await Future.delayed(const Duration(milliseconds: 100));
+            return authService.isLoading.value;
+          });
+
+          if (context.mounted) {
+            Navigator.of(context).pop(); // Dismiss dialog
+          }
+        }
+
         final user = authService.currentUser.value;
         if (user != null) {
           switch (user.role) {

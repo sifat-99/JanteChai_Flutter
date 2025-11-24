@@ -42,12 +42,35 @@ class _ManageNewsScreenState extends State<ManageNewsScreen> {
             itemCount: articles.length,
             itemBuilder: (context, index) {
               final article = articles[index];
-              return ListTile(
-                title: Text(article.title),
-                subtitle: Text(article.description ?? ''),
-                onTap: () {
-                  context.go('/edit-news', extra: article);
-                },
+              return Card(
+                margin: const EdgeInsets.symmetric(
+                  vertical: 8.0,
+                  horizontal: 16.0,
+                ),
+                elevation: 4.0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                  side: BorderSide(color: Colors.grey.shade300, width: 1.0),
+                ),
+                child: ListTile(
+                  title: Text(article.title),
+                  subtitle: Text(
+                    article.description ?? 'No description available.',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  onTap: () async {
+                    final result = await context.push<bool>(
+                      '/edit-news',
+                      extra: article,
+                    );
+                    if (result == true) {
+                      setState(() {
+                        _newsFuture = NewsApiService.getNews();
+                      });
+                    }
+                  },
+                ),
               );
             },
           );

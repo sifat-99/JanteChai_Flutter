@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:jante_chai/services/auth_service.dart'; // Import AuthService
-import 'package:go_router/go_router.dart'; // Import go_router
+import 'package:jante_chai/services/auth_service.dart';
+import 'package:go_router/go_router.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -10,17 +11,14 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  User? _currentUser; // Holds the current user data
-  late UserRole _userRole; // User role for drawer items
+  User? _currentUser;
+  late UserRole _userRole;
 
   @override
   void initState() {
     super.initState();
-    // Initialize current user and role from AuthService
     _currentUser = authService.currentUser.value;
     _userRole = _currentUser?.role ?? UserRole.unknown;
-
-    // Listen to changes in login status and current user
     authService.isLoggedIn.addListener(_onAuthChanged);
     authService.currentUser.addListener(_onUserChanged);
   }
@@ -34,7 +32,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _onAuthChanged() {
     setState(() {
-      // Re-fetch user details when login status changes
       _currentUser = authService.currentUser.value;
       _userRole = _currentUser?.role ?? UserRole.unknown;
     });
@@ -52,40 +49,273 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final bool isLoggedIn = authService.isLoggedIn.value;
 
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text('My Profile'),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/'),
+        ),
       ),
-      endDrawer: _buildDrawer(context), // Added endDrawer
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: <Widget>[
-          _buildProfileHeader(isLoggedIn),
-          const SizedBox(height: 24),
-          _buildInfoSection(isLoggedIn),
-          const SizedBox(height: 24),
-          _buildBioSection(isLoggedIn),
-          const SizedBox(height: 24),
-          if (isLoggedIn) // Show Edit Profile button only if logged in
-            ElevatedButton(
-              onPressed: () {
-                context.push(
-                  '/edit-profile',
-                ); // Navigate to Settings as Edit Profile placeholder
-              },
-              child: const Text('Edit Profile'),
-            )
-          else // Show Login button if not logged in
-            ElevatedButton(
-              onPressed: () {
-                context.push('/login'); // Navigate to Login screen
-              },
-              child: const Text('Login'),
+      endDrawer: _buildDrawer(context),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            _buildProfileHeader(isLoggedIn),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  if (isLoggedIn) ...[
+                    _buildInfoSection(),
+                    const SizedBox(height: 16),
+                    _buildBioSection(),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () => context.push('/edit-profile'),
+                        icon: const Icon(Icons.edit),
+                        label: const Text('Edit Profile'),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ] else
+                    _buildGuestView(),
+                ],
+              ),
             ),
-        ],
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildGuestView() {
+    return Center(
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.lock_outline, size: 64, color: Colors.grey),
+              const SizedBox(height: 16),
+              const Text(
+                'Guest User',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Please login to view your profile details.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () => context.push('/login'),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text('Login'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileHeader(bool isLoggedIn) {
+    final String displayName = _currentUser?.name ?? 'Guest User';
+    final String displayHandle =
+        _currentUser?.reporterId ?? (_currentUser?.email ?? 'Not logged in');
+    final String? avatarUrl = _currentUser?.avatarUrl;
+
+    return Stack(
+      alignment: Alignment.bottomCenter,
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          height: 280,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Theme.of(context).primaryColor,
+                Theme.of(context).primaryColor.withOpacity(0.7),
+              ],
+            ),
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(32),
+              bottomRight: Radius.circular(32),
+            ),
+          ),
+        ),
+        Positioned(
+          bottom: -50,
+          child: Column(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 4),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.white,
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: CircleAvatar(
+                  radius: 60,
+                  backgroundColor: Theme.of(context).cardColor,
+                  backgroundImage: avatarUrl != null && avatarUrl.isNotEmpty
+                      ? NetworkImage(avatarUrl)
+                      : null,
+                  child: avatarUrl == null || avatarUrl.isEmpty
+                      ? const Icon(Icons.person, size: 60, color: Colors.grey)
+                      : null,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                displayName,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                ),
+              ),
+              Text(
+                displayHandle,
+                style: TextStyle(
+                  fontSize: 16,
+                  height: 1.5,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoSection() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 60),
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: const [
+              _InfoTile(label: 'Posts', value: '0'),
+              _VerticalDivider(),
+              _InfoTile(label: 'Followers', value: '0'),
+              _VerticalDivider(),
+              _InfoTile(label: 'Following', value: '0'),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBioSection() {
+    final String displayBio = _currentUser?.bio ?? 'No bio available.';
+    final String displayEmail = _currentUser?.email ?? 'N/A';
+    final String displayGithub = _currentUser?.github ?? 'N/A';
+    final String? createdAt = _currentUser?.createdAt;
+
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'About Me',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              displayBio,
+              style: TextStyle(
+                fontSize: 16,
+                height: 1.5,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
+              ),
+            ),
+            const Divider(height: 32),
+            _buildDetailRow(Icons.email_outlined, 'Email', displayEmail),
+            const SizedBox(height: 12),
+            _buildDetailRow(FontAwesomeIcons.github, 'GitHub', displayGithub),
+            if (createdAt != null) ...[
+              const SizedBox(height: 12),
+              _buildDetailRow(
+                Icons.calendar_today_outlined,
+                'Joined',
+                createdAt,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(IconData icon, String label, String value) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Theme.of(context).primaryColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, size: 20, color: Theme.of(context).primaryColor),
+        ),
+        const SizedBox(width: 16),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).textTheme.bodyMedium?.color,
+              ),
+            ),
+            Text(
+              value,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -98,11 +328,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: <Widget>[
           DrawerHeader(
             decoration: BoxDecoration(color: Theme.of(context).primaryColor),
-            child: Text(
-              isLoggedIn
-                  ? 'Welcome, ${_currentUser?.name ?? 'User'}'
-                  : 'Guest User',
-              style: const TextStyle(color: Colors.white, fontSize: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                CircleAvatar(
+                  backgroundColor: Colors.white,
+                  radius: 30,
+                  backgroundImage:
+                      _currentUser?.avatarUrl != null &&
+                          _currentUser!.avatarUrl!.isNotEmpty
+                      ? NetworkImage(_currentUser!.avatarUrl!)
+                      : null,
+                  child:
+                      _currentUser?.avatarUrl == null ||
+                          _currentUser!.avatarUrl!.isEmpty
+                      ? Icon(
+                          Icons.person,
+                          size: 30,
+                          color: Theme.of(context).primaryColor,
+                        )
+                      : null,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  isLoggedIn
+                      ? 'Welcome, ${_currentUser?.name ?? 'User'}'
+                      : 'Guest User',
+                  style: const TextStyle(color: Colors.white, fontSize: 20),
+                ),
+              ],
             ),
           ),
           ..._buildDrawerItems(context, isLoggedIn),
@@ -114,14 +369,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   List<Widget> _buildDrawerItems(BuildContext context, bool isLoggedIn) {
     List<Widget> items = [];
 
-    // Common routes for all (logged in or not)
     items.add(
       ListTile(
         leading: const Icon(Icons.home),
         title: const Text('Home'),
         onTap: () {
-          Navigator.pop(context); // Close the drawer
-          context.go('/'); // Navigate to Home
+          Navigator.pop(context);
+          context.go('/');
         },
       ),
     );
@@ -137,7 +391,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     if (isLoggedIn && _currentUser != null) {
-      // Role-specific routes for logged-in users
       if (_userRole == UserRole.user) {
         items.add(
           ListTile(
@@ -152,37 +405,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       } else if (_userRole == UserRole.admin) {
         items.add(
           ListTile(
-            leading: const Icon(Icons.article),
-            title: const Text('Manage Articles'),
-            onTap: () {
-              Navigator.pop(context);
-              context.push('/manage-news');
-            },
-          ),
-        );
-        items.add(
-          ListTile(
-            leading: const Icon(Icons.analytics),
-            title: const Text('View Reports'),
-            onTap: () {
-              Navigator.pop(context);
-              context.push('/reporter_dashboard');
-            },
-          ),
-        );
-      } else if (_userRole == UserRole.admin) {
-        items.add(
-          ListTile(
-            leading: const Icon(Icons.people),
-            title: const Text('Manage Users'),
-            onTap: () {
-              Navigator.pop(context);
-              context.push('/manage-users');
-            },
-          ),
-        );
-        items.add(
-          ListTile(
             leading: const Icon(Icons.dashboard),
             title: const Text('Admin Dashboard'),
             onTap: () {
@@ -191,35 +413,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
             },
           ),
         );
+      } else if (_userRole == UserRole.reporter) {
         items.add(
           ListTile(
-            leading: const Icon(Icons.analytics_outlined),
-            title: const Text('System Logs'),
+            leading: const Icon(Icons.dashboard),
+            title: const Text('Reporter Dashboard'),
             onTap: () {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('System Logs feature coming soon!'),
-                ),
-              );
+              context.push('/reporter_dashboard');
             },
           ),
         );
       }
 
-      items.add(const Divider()); // A separator
+      items.add(const Divider());
       items.add(
         ListTile(
-          leading: const Icon(Icons.logout),
-          title: const Text('Logout'),
+          leading: const Icon(Icons.logout, color: Colors.red),
+          title: const Text('Logout', style: TextStyle(color: Colors.red)),
           onTap: () async {
-            Navigator.pop(context); // Close the drawer
-            await authService.logout(); // Perform Logout
+            Navigator.pop(context);
+            await authService.logout();
           },
         ),
       );
     } else {
-      // Add login/registration options for logged-out users in drawer if desired
       items.add(const Divider());
       items.add(
         ListTile(
@@ -227,7 +445,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           title: const Text('Login'),
           onTap: () {
             Navigator.pop(context);
-            context.push('/login'); // Navigate to Login screen
+            context.push('/login');
           },
         ),
       );
@@ -245,110 +463,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return items;
   }
-
-  Widget _buildProfileHeader(bool isLoggedIn) {
-    final String displayName = _currentUser?.name ?? 'Guest User';
-    final String displayHandle =
-        _currentUser?.reporterId ?? (_currentUser?.email ?? 'Not logged in');
-    final String? avatarUrl = _currentUser?.avatarUrl;
-
-    return Column(
-      children: <Widget>[
-        CircleAvatar(
-          radius: 60,
-          backgroundColor: Colors.grey[200],
-          backgroundImage: avatarUrl != null && avatarUrl.isNotEmpty
-              ? NetworkImage(avatarUrl)
-              : null,
-          onBackgroundImageError: avatarUrl != null && avatarUrl.isNotEmpty
-              ? (_, __) {
-                  // Handle error silently
-                }
-              : null,
-          child: avatarUrl == null || avatarUrl.isEmpty
-              ? const Icon(Icons.person, size: 60, color: Colors.grey)
-              : null,
-        ),
-        const SizedBox(height: 16),
-        Text(
-          displayName,
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          displayHandle,
-          style: const TextStyle(fontSize: 16, color: Colors.grey),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInfoSection(bool isLoggedIn) {
-    // Placeholder data for now, as backend doesn't provide posts/followers/following directly
-    return const Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: <Widget>[
-        _InfoTile(label: 'Posts', value: '0'),
-        _InfoTile(label: 'Followers', value: '0'),
-        _InfoTile(label: 'Following', value: '0'),
-      ],
-    );
-  }
-
-  Widget _buildBioSection(bool isLoggedIn) {
-    final String displayBio =
-        _currentUser?.bio ?? 'Please log in to see your profile details.';
-    final String displayEmail = _currentUser?.email ?? 'N/A';
-    final String displayGithub = _currentUser?.github != null
-        ? 'github.com/${_currentUser!.github}'
-        : 'N/A';
-    final String? createdAt = _currentUser?.createdAt;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        const Text(
-          'About Me',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        Text(displayBio, style: const TextStyle(fontSize: 16, height: 1.4)),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            const Icon(Icons.email_outlined, size: 20),
-            const SizedBox(width: 8),
-            Text(displayEmail, style: const TextStyle(fontSize: 16)),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            const Icon(Icons.link_outlined, size: 20),
-            const SizedBox(width: 8),
-            Text(
-              displayGithub,
-              style: const TextStyle(fontSize: 16, color: Colors.blue),
-            ),
-          ],
-        ),
-        if (createdAt != null)
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0),
-            child: Row(
-              children: [
-                const Icon(Icons.calendar_today_outlined, size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  'Member since: $createdAt',
-                  style: const TextStyle(fontSize: 16),
-                ),
-              ],
-            ),
-          ),
-      ],
-    );
-  }
 }
 
 class _InfoTile extends StatelessWidget {
@@ -363,11 +477,26 @@ class _InfoTile extends StatelessWidget {
       children: <Widget>[
         Text(
           value,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 4),
-        Text(label, style: const TextStyle(fontSize: 14, color: Colors.grey)),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            color: Theme.of(context).textTheme.bodyMedium?.color,
+          ),
+        ),
       ],
     );
+  }
+}
+
+class _VerticalDivider extends StatelessWidget {
+  const _VerticalDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(height: 30, width: 1, color: Colors.grey[300]);
   }
 }

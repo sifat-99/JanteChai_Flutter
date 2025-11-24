@@ -157,7 +157,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         children: [
           CircleAvatar(
             radius: 60,
-            backgroundColor: Colors.grey[200],
+            backgroundColor: Theme.of(context).cardColor,
             backgroundImage: url.isNotEmpty ? NetworkImage(url) : null,
             child: url.isEmpty
                 ? const Icon(Icons.person, size: 60, color: Colors.grey)

@@ -1,270 +1,142 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:jante_chai/models/article_model.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jante_chai/services/auth_service.dart';
-import 'package:jante_chai/services/news_api_service.dart';
 
-class ReporterDashboard extends StatefulWidget {
+class ReporterDashboard extends StatelessWidget {
   const ReporterDashboard({super.key});
 
   @override
-  State<ReporterDashboard> createState() => _ReporterDashboardState();
-}
-
-class _ReporterDashboardState extends State<ReporterDashboard> {
-  List<Article> _news = [];
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    authService.currentUser.addListener(_fetchNews);
-    _fetchNews();
-  }
-
-  @override
-  void dispose() {
-    authService.currentUser.removeListener(_fetchNews);
-    super.dispose();
-  }
-
-  Future<void> _fetchNews() async {
-    if (!mounted) return;
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final reporterEmail = authService.currentUser.value?.email;
-      if (reporterEmail == null) {
-        if (mounted) {
-          setState(() {
-            _news = [];
-            _isLoading = false;
-          });
-        }
-        return;
-      }
-      final allNews = await NewsApiService.getNews();
-      final reporterNews = allNews
-          .where((article) => article.reporterEmail == reporterEmail)
-          .toList();
-
-      if (mounted) {
-        setState(() {
-          _news = reporterNews;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _deleteNews(String newsId, String? reporterEmail) async {
-    if (reporterEmail == null) return;
-    try {
-      await NewsApiService.deleteNews(newsId, reporterEmail);
-      _fetchNews(); // Refresh the list after deleting
-    } catch (e) {
-      // Handle error
-      if (!mounted) return;
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Error'),
-          content: const Text('Failed to delete news.'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-        ),
-      );
-    }
-  }
-
-  Future<void> _showEditDialog(Article article) async {
-    final titleController = TextEditingController(text: article.title);
-    final categoryController = TextEditingController(text: article.category);
-
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Modify News'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                TextField(
-                  controller: titleController,
-                  decoration: const InputDecoration(labelText: 'Title'),
-                ),
-                TextField(
-                  controller: categoryController,
-                  decoration: const InputDecoration(labelText: 'Category'),
-                ),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('Save'),
-              onPressed: () async {
-                try {
-                  await NewsApiService.updateNews(article.id, {
-                    'title': titleController.text,
-                    'category': categoryController.text,
-                  });
-                  if (!mounted) return;
-                  Navigator.of(context).pop();
-                  _fetchNews(); // Refresh the list
-                } catch (e) {
-                  // Handle error
-                }
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final user = authService.currentUser.value;
+    final userName = user?.name ?? 'Reporter';
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Reporter Dashboard')),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.blueGrey),
-              child: Text(
-                'Menu',
-                style: TextStyle(color: Colors.white, fontSize: 24),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: const Text('Reporter Dashboard'),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/'),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Welcome back,',
+              style: TextStyle(
+                fontSize: 16,
+                color: Theme.of(context).textTheme.bodyMedium?.color,
               ),
             ),
-            ListTile(
-              leading: const Icon(Icons.publish),
-              title: const Text('Publish News'),
-              onTap: () {
-                context.push('/publish_news');
-              },
+            const SizedBox(height: 4),
+            Text(
+              userName,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
             ),
-            ListTile(
-              leading: const Icon(Icons.person),
-              title: const Text('Profile'),
-              onTap: () {
-                context.push('/profile');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.article),
-              title: const Text('Published News'),
-              onTap: () {
-                context.push('/published_news');
-              },
+            const SizedBox(height: 24),
+            Expanded(
+              child: GridView.count(
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                children: [
+                  _DashboardCard(
+                    title: 'Publish News',
+                    icon: FontAwesomeIcons.penToSquare,
+                    color: Colors.blueAccent,
+                    onTap: () => context.push('/publish_news'),
+                  ),
+                  _DashboardCard(
+                    title: 'Published News',
+                    icon: FontAwesomeIcons.newspaper,
+                    color: Colors.green,
+                    onTap: () => context.push('/published_news'),
+                  ),
+                  _DashboardCard(
+                    title: 'Profile',
+                    icon: FontAwesomeIcons.user,
+                    color: Colors.orangeAccent,
+                    onTap: () => context.push('/profile'),
+                  ),
+                  _DashboardCard(
+                    title: 'Analytics',
+                    icon: FontAwesomeIcons.chartLine,
+                    color: Colors.purpleAccent,
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Coming Soon!')),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
           ],
         ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _news.isEmpty
-          ? const Center(child: Text('No news published yet.'))
-          : ListView.builder(
-              padding: const EdgeInsets.all(8.0),
-              itemCount: _news.length,
-              itemBuilder: (context, index) {
-                final article = _news[index];
-                return Dismissible(
-                  key: Key(article.id),
-                  background: Container(
-                    color: Colors.green,
-                    alignment: Alignment.centerLeft,
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: const Icon(Icons.edit, color: Colors.white),
-                  ),
-                  secondaryBackground: Container(
-                    color: Colors.red,
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: const Icon(Icons.delete, color: Colors.white),
-                  ),
-                  confirmDismiss: (direction) async {
-                    if (direction == DismissDirection.startToEnd) {
-                      // Edit Action
-                      await _showEditDialog(article);
-                      return false; // Don't dismiss after edit
-                    } else {
-                      // Delete Action
-                      return await showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text("Confirm Delete"),
-                            content: const Text(
-                              "Are you sure you want to delete this news?",
-                            ),
-                            actions: <Widget>[
-                              TextButton(
-                                onPressed: () =>
-                                    Navigator.of(context).pop(false),
-                                child: const Text("Cancel"),
-                              ),
-                              TextButton(
-                                onPressed: () =>
-                                    Navigator.of(context).pop(true),
-                                child: const Text(
-                                  "Delete",
-                                  style: TextStyle(color: Colors.red),
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    }
-                  },
-                  onDismissed: (direction) {
-                    if (direction == DismissDirection.endToStart) {
-                      // Remove from list immediately to avoid errors
-                      setState(() {
-                        _news.removeAt(index);
-                      });
-                      _deleteNews(article.id, article.reporterEmail);
-                    }
-                  },
-                  child: Card(
-                    margin: const EdgeInsets.symmetric(vertical: 4.0),
-                    child: ListTile(
-                      title: Text(
-                        article.title,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Text(article.category ?? 'N/A'),
-                      trailing: const Icon(
-                        Icons.drag_handle,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ),
-                );
-              },
+    );
+  }
+}
+
+class _DashboardCard extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _DashboardCard({
+    required this.title,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [color.withOpacity(0.8), color],
             ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              FaIcon(icon, size: 40, color: Colors.white),
+              const SizedBox(height: 16),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
