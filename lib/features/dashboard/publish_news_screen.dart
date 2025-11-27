@@ -1,6 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:jante_chai/services/auth_service.dart';
 import 'package:jante_chai/services/news_api_service.dart';
+import 'package:jante_chai/services/image_upload_service.dart';
+import 'package:image_picker/image_picker.dart';
 
 class PublishNewsScreen extends StatefulWidget {
   const PublishNewsScreen({super.key});
@@ -17,15 +20,50 @@ class _PublishNewsScreenState extends State<PublishNewsScreen> {
   final _categoryController = TextEditingController();
 
   String _previewImageUrl = '';
+  bool _isUploading = false;
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickAndUploadImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      if (image == null) return;
+
+      setState(() {
+        _isUploading = true;
+      });
+
+      final File file = File(image.path);
+      final String? imageUrl = await imageUploadService.uploadImage(file);
+
+      if (imageUrl != null && imageUrl.isNotEmpty) {
+        setState(() {
+          _previewImageUrl = imageUrl;
+          _pictureUrlController.text = imageUrl;
+          _isUploading = false;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Image uploaded successfully!')),
+          );
+        }
+      } else {
+        throw Exception('Upload failed or no URL returned');
+      }
+    } catch (e) {
+      setState(() {
+        _isUploading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to upload image: $e')));
+      }
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    _pictureUrlController.addListener(() {
-      setState(() {
-        _previewImageUrl = _pictureUrlController.text;
-      });
-    });
   }
 
   @override
@@ -66,8 +104,26 @@ class _PublishNewsScreenState extends State<PublishNewsScreen> {
   @override
   Widget build(BuildContext context) {
     final user = authService.currentUser.value;
-    print(user);
     final isApproved = user?.status?.toLowerCase() == 'approved';
+
+    const categories = [
+      'General',
+      'Business',
+      'Technology',
+      'Entertainment',
+      'Education',
+      'Health',
+      'Sports',
+      'Politics',
+      'Science',
+      'Food',
+      'Travel',
+      'Fashion',
+      'Lifestyle',
+      'Crime',
+      'World',
+      'Others',
+    ];
 
     return Scaffold(
       appBar: AppBar(title: const Text('Publish News'), elevation: 0),
@@ -134,8 +190,10 @@ class _PublishNewsScreenState extends State<PublishNewsScreen> {
                               },
                             ),
                             const SizedBox(height: 16),
-                            TextFormField(
-                              controller: _categoryController,
+                            DropdownButtonFormField<String>(
+                              value: _categoryController.text.isEmpty
+                                  ? null
+                                  : _categoryController.text,
                               decoration: InputDecoration(
                                 labelText: 'Category',
                                 border: OutlineInputBorder(
@@ -143,83 +201,96 @@ class _PublishNewsScreenState extends State<PublishNewsScreen> {
                                 ),
                                 prefixIcon: const Icon(Icons.category),
                               ),
+                              items: categories.map((category) {
+                                return DropdownMenuItem(
+                                  value: category,
+                                  child: Text(category),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                if (value != null) {
+                                  _categoryController.text = value;
+                                }
+                              },
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Please enter a category';
+                                  return 'Please select a category';
                                 }
                                 return null;
                               },
                             ),
                             const SizedBox(height: 16),
-                            TextFormField(
-                              controller: _pictureUrlController,
-                              decoration: InputDecoration(
-                                labelText: 'Picture URL',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                prefixIcon: const Icon(Icons.image),
+                            const SizedBox(height: 16),
+                            // Image Upload Section
+                            Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey.shade300),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                children: [
+                                  if (_previewImageUrl.isNotEmpty) ...[
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.network(
+                                        _previewImageUrl,
+                                        height: 200,
+                                        width: double.infinity,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                              return const SizedBox(
+                                                height: 200,
+                                                child: Center(
+                                                  child: Icon(
+                                                    Icons.broken_image,
+                                                    color: Colors.grey,
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                  ],
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: OutlinedButton.icon(
+                                      onPressed: _isUploading
+                                          ? null
+                                          : _pickAndUploadImage,
+                                      icon: _isUploading
+                                          ? const SizedBox(
+                                              width: 20,
+                                              height: 20,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                              ),
+                                            )
+                                          : const Icon(Icons.cloud_upload),
+                                      label: Text(
+                                        _isUploading
+                                            ? 'Uploading...'
+                                            : (_previewImageUrl.isEmpty
+                                                  ? 'Upload Image'
+                                                  : 'Change Image'),
+                                      ),
+                                      style: OutlinedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 16,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(height: 20),
-                            if (_previewImageUrl.isNotEmpty)
-                              Container(
-                                height: 200,
-                                width: double.infinity,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: Theme.of(context).dividerColor,
-                                  ),
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.network(
-                                    _previewImageUrl,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return const Center(
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.broken_image,
-                                              size: 50,
-                                              color: Colors.grey,
-                                            ),
-                                            SizedBox(height: 8),
-                                            Text(
-                                              'Invalid Image URL',
-                                              style: TextStyle(
-                                                color: Colors.grey,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                    loadingBuilder:
-                                        (context, child, loadingProgress) {
-                                          if (loadingProgress == null)
-                                            return child;
-                                          return Center(
-                                            child: CircularProgressIndicator(
-                                              value:
-                                                  loadingProgress
-                                                          .expectedTotalBytes !=
-                                                      null
-                                                  ? loadingProgress
-                                                            .cumulativeBytesLoaded /
-                                                        loadingProgress
-                                                            .expectedTotalBytes!
-                                                  : null,
-                                            ),
-                                          );
-                                        },
-                                  ),
-                                ),
-                              ),
                             const SizedBox(height: 24),
                             SizedBox(
                               width: double.infinity,

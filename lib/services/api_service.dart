@@ -1,9 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-// You might need to add http: ^0.13.0 or a similar version to your pubspec.yaml
-// dependencies section if you haven't already.
-
 class ApiService {
   // static const String _baseUrl = 'http://localhost:5001/api';
   static const String _baseUrl =
