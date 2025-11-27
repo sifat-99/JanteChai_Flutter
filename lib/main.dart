@@ -6,6 +6,7 @@ import 'package:jante_chai/routing/app_router.dart';
 import 'package:jante_chai/theme.dart';
 import 'package:provider/provider.dart';
 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);

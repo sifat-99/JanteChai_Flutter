@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:jante_chai/services/auth_service.dart';
+import 'package:jante_chai/services/image_upload_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -16,6 +20,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _githubController;
   late TextEditingController _avatarUrlController;
   bool _isLoading = false;
+  String _previewImageUrl = '';
+  bool _isUploading = false;
 
   @override
   void initState() {
@@ -25,6 +31,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _bioController = TextEditingController(text: user?.bio ?? '');
     _githubController = TextEditingController(text: user?.github ?? '');
     _avatarUrlController = TextEditingController(text: user?.avatarUrl ?? '');
+    _previewImageUrl = user?.avatarUrl ?? '';
   }
 
   @override
@@ -34,6 +41,41 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _githubController.dispose();
     _avatarUrlController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickAndUploadImage() async {
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+      if (pickedFile != null) {
+        setState(() {
+          _isUploading = true;
+        });
+
+        final File imageFile = File(pickedFile.path);
+        final imageUrl = await imageUploadService.uploadImage(imageFile);
+
+        if (imageUrl != null) {
+          setState(() {
+            _previewImageUrl = imageUrl;
+            _avatarUrlController.text = imageUrl;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to upload image: $e')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+        });
+      }
+    }
   }
 
   Future<void> _saveProfile() async {
@@ -118,16 +160,67 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _avatarUrlController,
-                decoration: const InputDecoration(
-                  labelText: 'Avatar URL',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.image),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                onChanged: (value) {
-                  setState(() {}); // Rebuild to update preview
-                },
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    if (_previewImageUrl.isNotEmpty) ...[
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          _previewImageUrl,
+                          height: 200,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const SizedBox(
+                              height: 200,
+                              child: Center(
+                                child: Icon(
+                                  Icons.broken_image,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _isUploading ? null : _pickAndUploadImage,
+                        icon: _isUploading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.cloud_upload),
+                        label: Text(
+                          _isUploading
+                              ? 'Uploading...'
+                              : (_previewImageUrl.isEmpty
+                                    ? 'Upload Image'
+                                    : 'Change Image'),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 32),
               SizedBox(

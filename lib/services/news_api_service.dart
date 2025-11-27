@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:jante_chai/models/article_model.dart';
 import 'package:jante_chai/models/comment_model.dart';
 import 'package:jante_chai/services/api_service.dart';
@@ -7,7 +6,6 @@ class NewsApiService {
   static Future<List<Article>> getNews() async {
     try {
       final response = await ApiService.get('news');
-      debugPrint('Loaded news data: $response');
       final List<dynamic> newsList = response['news'];
       return newsList.map((json) => Article.fromJson(json)).toList();
     } catch (e) {
