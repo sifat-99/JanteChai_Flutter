@@ -38,27 +38,8 @@ jobs:
       - name: Get Dependencies
         run: flutter pub get
 
-      - name: Install create-dmg
-        run: brew install create-dmg
-
       - name: Build APK
         run: flutter build apk --release
-
-      - name: Build macOS App
-        run: flutter build macos --release
-
-      - name: Create DMG
-        run: |
-          create-dmg \
-            --volname "JanteChai" \
-            --window-pos 200 120 \
-            --window-size 800 400 \
-            --icon-size 100 \
-            --icon "JanteChai.app" 200 190 \
-            --hide-extension "JanteChai.app" \
-            --app-drop-link 600 185 \
-            "JanteChai.dmg" \
-            "build/macos/Build/Products/Release/JanteChai.app"
 
       - name: Read App Values
         id: app_values
@@ -75,7 +56,7 @@ jobs:
             Release of ${{ env.APP_NAME }} version ${{ env.VERSION }}
           files: |
             build/app/outputs/flutter-apk/app-release.apk
-            JanteChai.dmg
+
           draft: false
           prerelease: false
           generate_release_notes: true
