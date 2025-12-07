@@ -2,13 +2,19 @@ import 'dart:convert' show jsonDecode;
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ImageUploadService {
   Future<String?> uploadImage(File file) async {
     try {
-      final uri = Uri.parse('https://api.cloudinary.com/v1_1/dna94svwy/upload');
+      final cloudName = dotenv.env['CLOUDINARY_CLOUD_NAME'] ?? '';
+      final uploadPreset = dotenv.env['CLOUDINARY_UPLOAD_PRESET'] ?? '';
+
+      final uri = Uri.parse(
+        'https://api.cloudinary.com/v1_1/$cloudName/upload',
+      );
       final request = http.MultipartRequest('POST', uri)
-        ..fields['upload_preset'] = 'jantechai'
+        ..fields['upload_preset'] = uploadPreset
         ..files.add(await http.MultipartFile.fromPath('file', file.path));
       final response = await request.send();
       final responseData = await response.stream.toBytes();

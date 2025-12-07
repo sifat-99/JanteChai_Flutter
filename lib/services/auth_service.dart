@@ -1,8 +1,11 @@
-import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:jante_chai/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:jwt_decoder/jwt_decoder.dart'; // Added for JWT decoding
+import 'package:jwt_decoder/jwt_decoder.dart';
+// import 'dart:io' show Platform; // Removed unused import
+import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 
 // Define a UserRole enum for consistency across the app
 enum UserRole { user, reporter, admin, unknown }
@@ -100,6 +103,11 @@ class AuthService {
 
       if (authToken != null && authToken.isNotEmpty) {
         try {
+          if (JwtDecoder.isExpired(authToken)) {
+            await logout();
+            debugPrint('Token expired, logged out.');
+            return;
+          }
           Map<String, dynamic> decodedToken = JwtDecoder.decode(authToken);
 
           final userId = decodedToken['id'] as String?;
@@ -152,99 +160,370 @@ class AuthService {
     }
   }
 
-  Future<String?> login(String email, String password, UserRole role) async {
-    String endpoint = "";
-    if (role == UserRole.reporter) {
-      endpoint = 'reporters/login';
-    } else if (role == UserRole.user) {
-      endpoint = 'users/login';
-    } else if (role == UserRole.admin) {
-      endpoint = 'admins/login';
-    } else {
-      debugPrint('Invalid role provided for login: $role');
-      return null;
+  // Unified logic to handle backend sync after Firebase Auth
+  Future<String> _syncBackendAfterAuth(
+    fb_auth.User firebaseUser, {
+    String? password,
+  }) async {
+    // 1. Try to Login to Backend (as User first, then Reporter?)
+    final email = firebaseUser.email!;
+    final name = firebaseUser.displayName ?? email.split('@').first;
+    final photoUrl = firebaseUser.photoURL ?? '';
+    final pwd =
+        password ??
+        firebaseUser.uid; // Use UID as fallback password for social accounts
+
+    // Try login as User
+    var token = await _attemptBackendLogin(email, pwd, 'users/login');
+    if (token == null) {
+      // Try login as Reporter
+      token = await _attemptBackendLogin(email, pwd, 'reporters/login');
     }
+    if (token == null) {
+      // Try login as Admin
+      token = await _attemptBackendLogin(email, pwd, 'admins/login');
+    }
+
+    if (token == null) {
+      // User does not exist in backend? Or wrong password?
+      // If Social Login (password was null originally), we assume we should REGISTER them as USER now.
+      if (password == null) {
+        debugPrint(
+          'User not found in backend, registering as NEW USER via Social Login...',
+        );
+        final regSuccess = await _attemptBackendRegister(
+          name,
+          email,
+          pwd,
+          photoUrl,
+          'users/register',
+        );
+        if (regSuccess) {
+          // Try login again
+          token = await _attemptBackendLogin(email, pwd, 'users/login');
+        }
+      } else {
+        // If Email/Pass login and backend login failed, it might mean they registered
+        // via Firebase but didn't finish Role Selection (Backend registration).
+        // Or specific database issue.
+        // We will return 'NeedsRoleSelection' to prompt the UI to send them there.
+        return 'NeedsRoleSelection';
+      }
+    }
+
+    if (token != null) {
+      await _saveSession(token);
+      return 'Success';
+    } else {
+      // Only if social registration also failed
+      throw Exception('Failed to sync with backend database.');
+    }
+  }
+
+  Future<String?> _attemptBackendLogin(
+    String email,
+    String password,
+    String endpoint,
+  ) async {
     try {
       final responseData = await ApiService.post(endpoint, {
         'email': email,
         'password': password,
       });
-
-      final String? token = responseData['token'];
-
-      if (token != null && token.isNotEmpty) {
-        Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
-
-        final String? userId = decodedToken['id'] as String?;
-        final String? userEmail = decodedToken['email'] as String?;
-        final String? userRoleString = decodedToken['role'] as String?;
-        final String? userName = decodedToken['name'] as String?;
-        final String? userAvatarUrl = decodedToken['profilePic'] as String?;
-        final String? reporterId = decodedToken['reporterId'] as String?;
-        final String? createdAt = decodedToken['createdAt'] as String?;
-        final String? userStatus = decodedToken['status'] as String?;
-
-        final String? userBio = null;
-        final String? userGithub = null;
-
-        if (userId != null && userName != null && userEmail != null) {
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString(_authTokenKey, token);
-          await prefs.setString(_userIdKey, userId);
-          await prefs.setString(_userNameKey, userName);
-          await prefs.setString(_userEmailKey, userEmail);
-          if (userRoleString != null) {
-            await prefs.setString(_userRoleKey, userRoleString);
-          }
-          if (userAvatarUrl != null) {
-            await prefs.setString(_userProfilePicKey, userAvatarUrl);
-          }
-          if (reporterId != null) {
-            await prefs.setString(_userReporterIdKey, reporterId);
-          }
-          if (createdAt != null) {
-            await prefs.setString(_userCreatedAtKey, createdAt);
-          }
-          if (userStatus != null) {
-            await prefs.setString(_userStatusKey, userStatus);
-          }
-
-          currentUser.value = User(
-            id: userId,
-            name: userName,
-            email: userEmail,
-            role: User._stringToUserRole(userRoleString),
-            avatarUrl: userAvatarUrl,
-            bio: userBio,
-            github: userGithub,
-            reporterId: reporterId,
-            createdAt: createdAt,
-            status: userStatus,
-          );
-          isLoggedIn.value = true;
-          debugPrint('User logged in successfully');
-          debugPrint('Logged in user: ${currentUser.value}');
-          return userRoleString;
-        } else {
-          debugPrint('Login failed: Incomplete data from JWT token.');
-          isLoggedIn.value = false;
-          currentUser.value = null;
-          return null;
-        }
-      } else {
-        debugPrint('Login failed: Token not received from backend.');
-        isLoggedIn.value = false;
-        currentUser.value = null;
-        return null;
-      }
+      return responseData['token'];
     } catch (e) {
-      debugPrint('An error occurred during login: $e');
-      isLoggedIn.value = false;
-      currentUser.value = null;
       return null;
     }
   }
 
+  Future<bool> _attemptBackendRegister(
+    String name,
+    String email,
+    String password,
+    String photoUrl,
+    String endpoint,
+  ) async {
+    try {
+      await ApiService.post(endpoint, {
+        'name': name,
+        'email': email,
+        'password': password,
+        'profilePic': photoUrl,
+      });
+      return true;
+    } catch (e) {
+      debugPrint('Backend registration failed: $e');
+      return false;
+    }
+  }
+
+  Future<String?> loginWithEmailHelper(String email, String password) async {
+    try {
+      // 1. Firebase Login
+      final credential = await fb_auth.FirebaseAuth.instance
+          .signInWithEmailAndPassword(
+            email: email.trim(),
+            password: password.trim(),
+          );
+
+      final user = credential.user;
+      if (user != null) {
+        if (!user.emailVerified) {
+          debugPrint('Email not verified');
+          return 'EmailNotVerified';
+        }
+
+        final result = await _syncBackendAfterAuth(user, password: password);
+        return result;
+      }
+    } catch (e) {
+      if (e.toString().contains('Failed to sync')) {
+        return 'SyncFailed';
+      }
+      debugPrint('Login Error: $e');
+      return null;
+    }
+    return null;
+  }
+
+  Future<String> loginAsAdmin(String email, String password) async {
+    try {
+      debugPrint('Attempting direct Admin login for $email');
+      final token = await _attemptBackendLogin(email, password, 'admins/login');
+      if (token != null) {
+        await _saveSession(token);
+        return 'Success';
+      }
+      return 'Invalid Credentials';
+    } catch (e) {
+      debugPrint('Admin Login Error: $e');
+      return 'Error: $e';
+    }
+  }
+
+  Future<void> sendEmailVerification() async {
+    final user = fb_auth.FirebaseAuth.instance.currentUser;
+    if (user != null && !user.emailVerified) {
+      try {
+        await user.sendEmailVerification();
+        debugPrint('Verification email sent to ${user.email}');
+      } catch (e) {
+        debugPrint('Failed to send verification email: $e');
+      }
+    }
+  }
+
+  // Legacy support or direct role login if needed (Optional, keeping consistent signature for now if used elsewhere)
+  // CHANGED: Now uses Firebase internally.
+  Future<String?> login(String email, String password, UserRole role) async {
+    return await loginWithEmailHelper(email, password);
+  }
+
+  Future<String?> signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) return null; // Cancelled
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+      final fb_auth.AuthCredential credential =
+          fb_auth.GoogleAuthProvider.credential(
+            accessToken: googleAuth.accessToken,
+            idToken: googleAuth.idToken,
+          );
+
+      final userCredential = await fb_auth.FirebaseAuth.instance
+          .signInWithCredential(credential);
+      if (userCredential.user != null) {
+        return await _syncBackendAfterAuth(userCredential.user!);
+      }
+    } catch (e) {
+      debugPrint('Google Sign In Error: $e');
+    }
+    return null;
+  }
+
+  /*
+  Future<String?> signInWithFacebook() async {
+    try {
+      final LoginResult result = await FacebookAuth.instance.login();
+      if (result.status == LoginStatus.success) {
+        final AccessToken accessToken = result.accessToken!;
+        final fb_auth.AuthCredential credential =
+            fb_auth.FacebookAuthProvider.credential(accessToken.tokenString);
+
+        final userCredential = await fb_auth.FirebaseAuth.instance
+            .signInWithCredential(credential);
+        if (userCredential.user != null) {
+          return await _syncBackendAfterAuth(userCredential.user!);
+        }
+      }
+    } catch (e) {
+      debugPrint('Facebook Sign In Error: $e');
+    }
+    return null;
+  }
+  */
+
+  Future<String?> signInWithGitHub() async {
+    try {
+      final fb_auth.OAuthProvider provider = fb_auth.OAuthProvider(
+        'github.com',
+      );
+      provider.addScope('read:user');
+      provider.addScope('user:email');
+
+      final fb_auth.UserCredential userCredential = await fb_auth
+          .FirebaseAuth
+          .instance
+          .signInWithProvider(provider);
+
+      if (userCredential.user != null) {
+        return await _syncBackendAfterAuth(userCredential.user!);
+      }
+    } catch (e) {
+      debugPrint('GitHub Sign In Error: $e');
+    }
+    return null;
+  }
+
+  Future<String?> signInWithApple() async {
+    try {
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+
+      final oAuthProvider = fb_auth.OAuthProvider('apple.com');
+      final fb_auth.AuthCredential firebaseCredential = oAuthProvider
+          .credential(
+            idToken: credential.identityToken,
+            accessToken: credential.authorizationCode,
+          );
+
+      final userCredential = await fb_auth.FirebaseAuth.instance
+          .signInWithCredential(firebaseCredential);
+      if (userCredential.user != null) {
+        return await _syncBackendAfterAuth(userCredential.user!);
+      }
+    } catch (e) {
+      debugPrint('Apple Sign In Error: $e');
+    }
+    return null;
+  }
+
+  // STEP 1 of Registration: Firebase Only
+  Future<bool> firebaseSignUp(String email, String password) async {
+    try {
+      await fb_auth.FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email.trim(),
+        password: password.trim(),
+      );
+      return true;
+    } catch (e) {
+      debugPrint('Firebase SignUp Error: $e');
+      return false;
+    }
+  }
+
+  // STEP 2 of Registration: Backend + Role
+  Future<bool> finalizeRegistration(UserRole role) async {
+    final user = fb_auth.FirebaseAuth.instance.currentUser;
+    if (user == null) return false;
+
+    // We need a password to register in backend according to old logic.
+    // But we don't store the password in plain text here easily.
+    // Workaround: Use UID as password for backend consistency if we can't get original password?
+    // OR: Pass the password from the UI.
+    // BETTER: The UI should pass the password to this method?
+    // But we are in a multi-step flow.
+    // Let's assume we use UID as password for consistency with Social Login pattern,
+    // OR we ask the user to input password again? No that's bad UX.
+    // We will use the UID as the backend password for this flow.
+
+    final endpoint = role == UserRole.reporter
+        ? 'reporters/register'
+        : 'users/register';
+    final success = await _attemptBackendRegister(
+      user.displayName ?? user.email!.split('@')[0],
+      user.email!,
+      user.uid, // Using UID as password
+      user.photoURL ?? '',
+      endpoint,
+    );
+
+    if (success) {
+      // Now login to get the token
+      final token = await _attemptBackendLogin(
+        user.email!,
+        user.uid,
+        role == UserRole.reporter ? 'reporters/login' : 'users/login',
+      );
+      if (token != null) {
+        await _saveSession(token);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  Future<void> _saveSession(String token) async {
+    Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+
+    final String? userId = decodedToken['id'] as String?;
+    final String? userEmail = decodedToken['email'] as String?;
+    final String? userRoleString = decodedToken['role'] as String?;
+    final String? userName = decodedToken['name'] as String?;
+    final String? userAvatarUrl = decodedToken['profilePic'] as String?;
+    final String? reporterId = decodedToken['reporterId'] as String?;
+    final String? createdAt = decodedToken['createdAt'] as String?;
+    final String? userStatus = decodedToken['status'] as String?;
+
+    final String? userBio = null;
+    final String? userGithub = null;
+
+    if (userId != null && userName != null && userEmail != null) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_authTokenKey, token);
+      await prefs.setString(_userIdKey, userId);
+      await prefs.setString(_userNameKey, userName);
+      await prefs.setString(_userEmailKey, userEmail);
+      if (userRoleString != null) {
+        await prefs.setString(_userRoleKey, userRoleString);
+      }
+      if (userAvatarUrl != null) {
+        await prefs.setString(_userProfilePicKey, userAvatarUrl);
+      }
+      if (reporterId != null) {
+        await prefs.setString(_userReporterIdKey, reporterId);
+      }
+      if (createdAt != null) {
+        await prefs.setString(_userCreatedAtKey, createdAt);
+      }
+      if (userStatus != null) {
+        await prefs.setString(_userStatusKey, userStatus);
+      }
+
+      currentUser.value = User(
+        id: userId,
+        name: userName,
+        email: userEmail,
+        role: User._stringToUserRole(userRoleString),
+        avatarUrl: userAvatarUrl,
+        bio: userBio,
+        github: userGithub,
+        reporterId: reporterId,
+        createdAt: createdAt,
+        status: userStatus,
+      );
+      isLoggedIn.value = true;
+      debugPrint('User logged in successfully');
+    }
+  }
+
+  // Deprecated/Modified register to match new flow - kept for compatibility if needed but calls new logic
   Future<dynamic> register(
     String username,
     String email,
@@ -252,41 +531,33 @@ class AuthService {
     String profilePic,
     UserRole role,
   ) async {
-    fb_auth.UserCredential? userCredential;
-    try {
-      userCredential = await fb_auth.FirebaseAuth.instance
-          .createUserWithEmailAndPassword(
-            email: email.trim(),
-            password: password.trim(),
-          );
+    // This was the old "One Step" register.
+    // We should ideally use the split flow now.
+    // But for backward compatibility or direct calls:
+    final fbSuccess = await firebaseSignUp(email, password);
+    if (fbSuccess) {
+      // Update Profile with name
+      await fb_auth.FirebaseAuth.instance.currentUser?.updateDisplayName(
+        username,
+      );
+      await fb_auth.FirebaseAuth.instance.currentUser?.updatePhotoURL(
+        profilePic,
+      ); // if valid URL
 
-      String endpoint = role == UserRole.reporter
-          ? 'reporters/register'
-          : 'users/register';
-
-      final backendResponse = await ApiService.post(endpoint, {
-        'name': username,
-        'email': email,
-        'password': password,
-        'profilePic': profilePic,
-      });
-
-      return backendResponse;
-    } on fb_auth.FirebaseAuthException catch (e) {
-      print(e.message);
-      return null;
-    } catch (e) {
-      // If backend registration fails, delete the Firebase user.
-      if (userCredential != null) {
-        await userCredential.user?.delete();
-      }
-      print('An error occurred during registration: $e');
-      return null;
+      // Finalize
+      final backendSuccess = await finalizeRegistration(
+        role,
+      ); // NOTE: This uses UID as password.
+      return backendSuccess ? {'token': 'simulated_success'} : null;
     }
+    return null;
   }
 
   // Simulate a logout operation
   Future<void> logout() async {
+    await fb_auth.FirebaseAuth.instance.signOut();
+    await GoogleSignIn().signOut(); // Ensure Google is signed out too
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_authTokenKey);
     await prefs.remove(_userIdKey);
@@ -332,7 +603,7 @@ class AuthService {
     if (avatarUrl != null) data['profilePic'] = avatarUrl;
 
     try {
-      final response = await ApiService.put(endpoint, data);
+      await ApiService.put(endpoint, data);
 
       // Update local user data
       final prefs = await SharedPreferences.getInstance();

@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jante_chai/services/auth_service.dart';
-import 'package:jante_chai/features/auth/widgets/social_login_buttons.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class AdminLoginScreen extends StatefulWidget {
+  const AdminLoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<AdminLoginScreen> createState() => _AdminLoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _AdminLoginScreenState extends State<AdminLoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
@@ -36,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _isLoading = true);
 
-    final result = await authService.loginWithEmailHelper(
+    final result = await authService.loginAsAdmin(
       _emailController.text,
       _passwordController.text,
     );
@@ -44,61 +43,24 @@ class _LoginScreenState extends State<LoginScreen> {
     if (mounted) {
       setState(() => _isLoading = false);
       if (result == 'Success') {
-        // Check role to redirect
         final user = authService.currentUser.value;
-        if (user != null) {
-          if (user.role == UserRole.admin) {
-            context.go('/admin_dashboard');
-          } else if (user.role == UserRole.reporter) {
-            context.go('/reporter_dashboard');
-          } else {
-            context.go('/user_dashboard');
-          }
+        if (user != null && user.role == UserRole.admin) {
+          context.go('/admin_dashboard');
+        } else {
+          _showErrorSnackBar('Access Denied. Not an Admin account.');
+          // Optional: Logout if they are not admin?
+          // authService.logout();
         }
-      } else if (result == 'EmailNotVerified') {
-        _showEmailVerificationDialog();
-      } else if (result == 'NeedsRoleSelection') {
-        context.go('/role_selection');
       } else {
-        _showErrorSnackBar('Login failed. Please check your credentials.');
+        _showErrorSnackBar('Login failed. Please check credentials.');
       }
     }
-  }
-
-  void _showEmailVerificationDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Email Not Verified'),
-        content: const Text(
-          'Please verify your email address before logging in.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              await authService.sendEmailVerification();
-              if (mounted) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Verification email sent')),
-                );
-              }
-            },
-            child: const Text('Resend Email'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
+      appBar: AppBar(title: const Text('Admin Login')),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
@@ -112,9 +74,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     TextField(
                       controller: _emailController,
                       decoration: const InputDecoration(
-                        labelText: 'Email',
+                        labelText: 'Admin Email',
                         border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.email),
+                        prefixIcon: Icon(Icons.admin_panel_settings),
                       ),
                       keyboardType: TextInputType.emailAddress,
                     ),
@@ -133,26 +95,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: _login,
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: Colors.redAccent, // Distinct color
+                        foregroundColor: Colors.white,
                       ),
-                      child: const Text('Login'),
-                    ),
-                    const SizedBox(height: 16),
-                    const SocialLoginButtons(),
-                    const SizedBox(height: 16.0),
-                    TextButton(
-                      onPressed: () {
-                        context.push('/register');
-                      },
-                      child: const Text('Don\'t have an account? Register'),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        context.push('/admin_login');
-                      },
-                      child: const Text(
-                        'Login as Admin',
-                        style: TextStyle(color: Colors.grey),
-                      ),
+                      child: const Text('Login as Admin'),
                     ),
                   ],
                 ),

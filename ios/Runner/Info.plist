@@ -51,5 +51,30 @@
 	<string>We need access to your microphone for video recording.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<!-- TODO: Replace this with your REVERSED_CLIENT_ID from GoogleService-Info.plist -->
+				<string>com.googleusercontent.apps.272134549054-isaoqq8p80hleqaqsrqon05fcutptjh5</string>
+				<!-- TODO: Replace with your Facebook App ID prefixed with 'fb' -->
+				<string>fb1200749598821206</string>
+			</array>
+		</dict>
+	</array>
+    <key>FacebookAppID</key>
+    <string>1200749598821206</string>
+    <key>FacebookClientToken</key>
+    <string>245d1f1b42433fc759fb81e9fa6883d5</string>
+    <key>FacebookDisplayName</key>
+    <string>JanteChai</string>
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+        <string>fbapi</string>
+        <string>fb-messenger-share-api</string>
+    </array>
 </dict>
 </plist>

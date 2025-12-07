@@ -9,10 +9,23 @@
       "client_info": {
         "mobilesdk_app_id": "1:272134549054:android:bc14cedd8b96c197a12b6f",
         "android_client_info": {
-          "package_name": "com.sifat.dev.jante_chai"
+          "package_name": "com.example.jante_chai"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "272134549054-pr39dangv0hcgiro2cekpovom1d7r0r2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.jante_chai",
+            "certificate_hash": "03c812c3d499ccdd4e0681812014f8cc0396190f"
+          }
+        },
+        {
+          "client_id": "272134549054-jt8crbnq885m6ccbk5k4gsn5la5v1mmo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBbDO6zSJDcWAoDeBm7ZrA7vmXMOuuNtbY"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "272134549054-jt8crbnq885m6ccbk5k4gsn5la5v1mmo.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "272134549054-isaoqq8p80hleqaqsrqon05fcutptjh5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.janteChai"
+              }
+            }
+          ]
         }
       }
     }

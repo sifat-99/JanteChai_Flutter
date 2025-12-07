@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "com.sifat.dev.jante_chai"
+    namespace = "com.example.jante_chai"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -24,7 +24,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.sifat.dev.jante_chai"
+        applicationId = "com.example.jante_chai"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

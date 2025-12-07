@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jante_chai/features/auth/login_screen.dart';
 import 'package:jante_chai/features/auth/register_screen.dart';
+import 'package:jante_chai/features/auth/role_selection_screen.dart';
+import 'package:jante_chai/features/auth/admin_login_screen.dart';
 import 'package:jante_chai/features/categories/categories_screen.dart';
 import 'package:jante_chai/features/categories/category_news_screen.dart';
 import 'package:jante_chai/features/dashboard/admin_dashboard.dart';
@@ -113,6 +115,22 @@ final goRouter = GoRouter(
             context: context,
             state: state,
             child: const LoginScreen(),
+          ),
+        ),
+        GoRoute(
+          path: '/admin_login',
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context,
+            state: state,
+            child: const AdminLoginScreen(),
+          ),
+        ),
+        GoRoute(
+          path: '/role_selection',
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context,
+            state: state,
+            child: const RoleSelectionScreen(),
           ),
         ),
         GoRoute(

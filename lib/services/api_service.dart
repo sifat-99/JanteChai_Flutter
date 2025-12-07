@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class ApiService {
   // static const String _baseUrl = 'http://localhost:5001/api';
-  static const String _baseUrl =
-      'https://jante-chaii-backend.vercel.app/api'; // Updated to your Vercel backend URL
+  static String get _baseUrl =>
+      dotenv.env['API_BASE_URL'] ?? 'http://localhost:5001/api';
   // Generic GET request
   static Future<dynamic> get(String endpoint) async {
     final uri = Uri.parse('$_baseUrl/$endpoint');
@@ -31,6 +33,7 @@ class ApiService {
     Map<String, dynamic> data,
   ) async {
     final uri = Uri.parse('$_baseUrl/$endpoint');
+    print(uri);
     try {
       final response = await http.post(
         uri,
