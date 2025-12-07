@@ -61,11 +61,13 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyDx2uqI8U2CQBKihb41u5uCgHGdgGsUE8o',
-    appId: '1:272134549054:ios:1233244f898a4c28a12b6f',
+    appId: '1:272134549054:ios:58bb0bb69ded0708a12b6f',
     messagingSenderId: '272134549054',
     projectId: 'jantechaii',
     storageBucket: 'jantechaii.firebasestorage.app',
-    iosBundleId: 'com.example.janteChai',
+    androidClientId: '272134549054-pr39dangv0hcgiro2cekpovom1d7r0r2.apps.googleusercontent.com',
+    iosClientId: '272134549054-uknji1te3ee5r0l3vg5mm24n6aep7s4r.apps.googleusercontent.com',
+    iosBundleId: 'com.sifat.dev.jantechai',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(

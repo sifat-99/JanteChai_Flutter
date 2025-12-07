@@ -51,17 +51,17 @@ dependencies:
   firebase_core: ^4.2.1
   firebase_auth: ^6.1.2
   intl: ^0.20.2
-  google_fonts: ^6.3.2
+  google_fonts: ^6.3.3
   uploadthing: ^1.0.4
   image_picker: ^1.2.1
   cloudinary_api: ^1.1.1
   cloudinary_url_gen: ^1.8.0
-  google_sign_in: ^6.2.1
+  google_sign_in: ^6.3.0
 
-  sign_in_with_apple: ^6.1.1
+  sign_in_with_apple: ^7.0.1
 
 dev_dependencies:
-  flutter_launcher_icons: ^0.13.1
+  flutter_launcher_icons: ^0.14.4
 
   flutter_test:
     sdk: flutter
