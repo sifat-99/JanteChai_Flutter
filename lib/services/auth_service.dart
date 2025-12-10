@@ -175,12 +175,12 @@ class AuthService {
 
     // Try login as User
     var token = await _attemptBackendLogin(email, pwd, 'users/login');
+    print(token);
     if (token == null) {
       // Try login as Reporter
       token = await _attemptBackendLogin(email, pwd, 'reporters/login');
     }
     if (token == null) {
-      // Try login as Admin
       token = await _attemptBackendLogin(email, pwd, 'admins/login');
     }
 
@@ -277,10 +277,34 @@ class AuthService {
         return result;
       }
     } catch (e) {
+      debugPrint('Firebase Login Failed: $e. Attempting backend fallback...');
+
+      // Fallback: Try backend login directly for all roles
+
+      // 1. Try User
+      var token = await _attemptBackendLogin(email, password, 'users/login');
+
+      // 2. Try Reporter
+      if (token == null) {
+        debugPrint('Reporter Login Failed: $e');
+        token = await _attemptBackendLogin(email, password, 'reporters/login');
+      }
+
+      // 3. Try Admin
+      if (token == null) {
+        debugPrint('Admin Login Failed: $e');
+        token = await _attemptBackendLogin(email, password, 'admins/login');
+      }
+
+      if (token != null) {
+        await _saveSession(token);
+        return 'Success';
+      }
+
       if (e.toString().contains('Failed to sync')) {
         return 'SyncFailed';
       }
-      debugPrint('Login Error: $e');
+      debugPrint('Login Error (Firebase & Backend): $e');
       return null;
     }
     return null;
@@ -310,6 +334,18 @@ class AuthService {
       } catch (e) {
         debugPrint('Failed to send verification email: $e');
       }
+    }
+  }
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await fb_auth.FirebaseAuth.instance.sendPasswordResetEmail(
+        email: email.trim(),
+      );
+      debugPrint('Password reset email sent to $email');
+    } catch (e) {
+      debugPrint('Failed to send password reset email: $e');
+      rethrow; // Rethrow to let the UI handle specific errors if needed
     }
   }
 
