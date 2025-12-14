@@ -591,8 +591,12 @@ class AuthService {
 
   // Simulate a logout operation
   Future<void> logout() async {
+    try {
+      await GoogleSignIn().signOut();
+    } catch (e) {
+      debugPrint('Google Sign Out Error: $e');
+    }
     await fb_auth.FirebaseAuth.instance.signOut();
-    await GoogleSignIn().signOut(); // Ensure Google is signed out too
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_authTokenKey);

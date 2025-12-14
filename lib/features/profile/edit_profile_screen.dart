@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -53,8 +51,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           _isUploading = true;
         });
 
-        final File imageFile = File(pickedFile.path);
-        final imageUrl = await imageUploadService.uploadImage(imageFile);
+        final imageUrl = await imageUploadService.uploadImage(pickedFile);
 
         if (imageUrl != null) {
           setState(() {

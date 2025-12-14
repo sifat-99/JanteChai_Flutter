@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jante_chai/services/auth_service.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class SocialLoginButtons extends StatelessWidget {
   const SocialLoginButtons({super.key});
@@ -11,20 +12,57 @@ class SocialLoginButtons extends StatelessWidget {
     BuildContext context,
     Future<String?> Function() signInMethod,
   ) async {
-    final result = await signInMethod();
-    if (result == 'Success' && context.mounted) {
-      // Check if we need to redirect, usually Dashboard or Role Selection if not yet set
-      // Since the service logic auto-creates 'user', we go to user_dashboard by default
-      // Or we can check the role from AuthService
-      final user = authService.currentUser.value;
-      if (user != null) {
-        if (user.role == UserRole.admin) {
-          context.go('/admin_dashboard');
-        } else if (user.role == UserRole.reporter) {
-          context.go('/reporter_dashboard');
-        } else {
-          context.go('/user_dashboard');
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Logging in... Please wait'),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    try {
+      final result = await signInMethod();
+
+      if (context.mounted) {
+        Navigator.of(context, rootNavigator: true).pop(); // Dismiss dialog
+        if (result == 'Success') {
+          // Check if we need to redirect, usually Dashboard or Role Selection if not yet set
+          // Since the service logic auto-creates 'user', we go to user_dashboard by default
+          // Or we check the role from AuthService
+          final user = authService.currentUser.value;
+          if (user != null) {
+            if (user.role == UserRole.admin) {
+              context.go('/admin_dashboard');
+            } else if (user.role == UserRole.reporter) {
+              context.go('/reporter_dashboard');
+            } else {
+              context.go('/user_dashboard');
+            }
+          }
         }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.of(
+          context,
+          rootNavigator: true,
+        ).pop(); // Dismiss dialog on error
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Login failed: $e')));
       }
     }
   }
@@ -61,7 +99,7 @@ class SocialLoginButtons extends StatelessWidget {
               onPressed: () =>
                   _handleSocialLogin(context, authService.signInWithGitHub),
             ),
-            if (Platform.isIOS) ...[
+            if (!kIsWeb && Platform.isIOS) ...[
               const SizedBox(width: 20),
               _SocialButton(
                 icon: FontAwesomeIcons.apple,

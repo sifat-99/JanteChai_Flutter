@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jante_chai/models/article_model.dart';
 import 'package:jante_chai/services/auth_service.dart';
 import 'package:jante_chai/services/news_api_service.dart';
+import 'package:jante_chai/services/saved_news_service.dart';
 
 import 'package:jante_chai/utils/image_utils.dart';
 
@@ -20,11 +21,33 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
   final _replyControllers = <String, TextEditingController>{};
   String? _replyingToCommentId;
   final Set<String> _expandedCommentIds = {};
+  bool _isSaved = false;
 
   @override
   void initState() {
     super.initState();
     _currentArticle = widget.article;
+    _checkIfSaved();
+  }
+
+  Future<void> _checkIfSaved() async {
+    final isSaved = await savedNewsService.isArticleSaved(widget.article.id);
+    if (mounted) {
+      setState(() {
+        _isSaved = isSaved;
+      });
+    }
+  }
+
+  Future<void> _toggleSave() async {
+    if (_isSaved) {
+      await savedNewsService.removeArticle(_currentArticle.id);
+    } else {
+      await savedNewsService.saveArticle(_currentArticle);
+    }
+    setState(() {
+      _isSaved = !_isSaved;
+    });
   }
 
   @override
@@ -109,6 +132,15 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
       appBar: AppBar(
         leading: const BackButton(),
         title: Text(_currentArticle.title),
+        actions: [
+          IconButton(
+            icon: Icon(
+              _isSaved ? Icons.bookmark : Icons.bookmark_border,
+              color: _isSaved ? Theme.of(context).colorScheme.primary : null,
+            ),
+            onPressed: _toggleSave,
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),

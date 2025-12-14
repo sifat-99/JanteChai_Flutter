@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:jante_chai/services/auth_service.dart';
 import 'package:jante_chai/services/news_api_service.dart';
@@ -32,8 +31,7 @@ class _PublishNewsScreenState extends State<PublishNewsScreen> {
         _isUploading = true;
       });
 
-      final File file = File(image.path);
-      final String? imageUrl = await imageUploadService.uploadImage(file);
+      final String? imageUrl = await imageUploadService.uploadImage(image);
 
       if (imageUrl != null && imageUrl.isNotEmpty) {
         setState(() {

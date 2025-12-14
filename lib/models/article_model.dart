@@ -43,7 +43,9 @@ class Article {
 
   factory Article.fromJson(Map<String, dynamic> json) {
     var commentsList = json['comments'] as List? ?? [];
-    List<Comment> comments = commentsList.map((i) => Comment.fromJson(i)).toList();
+    List<Comment> comments = commentsList
+        .map((i) => Comment.fromJson(i))
+        .toList();
 
     return Article(
       id: json['_id'] ?? '',
@@ -51,10 +53,14 @@ class Article {
       title: json['title'] ?? 'No Title',
       description: json['description'],
       content: json['content'],
-      keywords: json['keywords'] != null ? List<String>.from(json['keywords']) : null,
+      keywords: json['keywords'] != null
+          ? List<String>.from(json['keywords'])
+          : null,
       reporterEmail: json['reporterEmail'],
       language: json['language'],
-      country: json['country'] != null ? List<String>.from(json['country']) : [],
+      country: json['country'] != null
+          ? List<String>.from(json['country'])
+          : [],
       category: json['category'],
       pubDate: json['publishedAt'] ?? json['pubDate'],
       imageUrl: json['pictureUrl'] ?? json['image_url'],
@@ -65,5 +71,28 @@ class Article {
       sourceIcon: json['source_icon'],
       comments: comments,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '_id': id,
+      'link': link,
+      'title': title,
+      'description': description,
+      'content': content,
+      'keywords': keywords,
+      'reporterEmail': reporterEmail,
+      'language': language,
+      'country': country,
+      'category': category,
+      'pubDate': pubDate,
+      'pictureUrl': imageUrl,
+      'video_url': videoUrl,
+      'source_id': sourceId,
+      'source_name': sourceName,
+      'source_url': sourceUrl,
+      'source_icon': sourceIcon,
+      'comments': comments?.map((comment) => comment.toJson()).toList(),
+    };
   }
 }

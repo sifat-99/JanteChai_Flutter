@@ -19,6 +19,15 @@ class Reply {
       createdAt: DateTime.parse(json['createdAt']),
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'replierName': replierName,
+      'replierEmail': replierEmail,
+      'content': content,
+      'createdAt': createdAt.toIso8601String(),
+    };
+  }
 }
 
 class Comment {
@@ -53,5 +62,17 @@ class Comment {
       replies: replies,
       articleTitle: json['articleTitle'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '_id': id,
+      'commenterName': commenterName,
+      'commenterEmail': commenterEmail,
+      'content': content,
+      'createdAt': createdAt.toIso8601String(),
+      'replies': replies.map((reply) => reply.toJson()).toList(),
+      'articleTitle': articleTitle,
+    };
   }
 }
